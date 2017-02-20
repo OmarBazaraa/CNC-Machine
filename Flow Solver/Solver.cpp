@@ -3,18 +3,34 @@
 int recursiveCalls = 0;
 int dx[] = { 1, -1, 0, 0 };
 int dy[] = { 0, 0, 1, -1 };
+/**
+	@IAR
+	Need you to fill in the grid dimensions: rowsCount and colsCount
+	and for sure the grid itself.
+	Any empty cell should be assigned 0, otherwise it should be assigned
+	the corresponding color identifier (from 1 to C, where C is the number of colors in the gird).
+	Any color identifier should appear exactly twice.
+*/
 int rowsCount;
-int colCounts;
+int colsCount;
 int grid[25][25];	// Max 14x14 in Flow Game
 vector<int> colors;
 vector<pair<point, point>> colorPairs;
 vector<vector<point>> colorPathCells;
 vector<vector<direction>> colorPathDirections;
 
+/*
+	@IAR
+	Remove the I/O operations in init function after
+	filling the grid and its dimensions
+*/
 /* Initializes the data to be processed */
 bool init(const string& directory) {
 	boostIO();
 
+	// To be removed
+	// ===============================
+	// --------- from here -----------
 	ifstream fin(directory);
 
 	if (!fin.is_open()) {
@@ -22,24 +38,30 @@ bool init(const string& directory) {
 		return false;
 	}
 
-	fin >> rowsCount >> colCounts;
+	fin >> rowsCount >> colsCount;
+
+	// Read the grid
+	for (int i = 0; i < rowsCount; ++i) {
+		for (int j = 0; j < colsCount; ++j) {
+			fin >> grid[i][j];
+		}
+	}
+
+	fin.close();
+	// ----------- to here -----------
+	// ===============================
 
 	map<int, vector<point>> mp;
 
-	// Read the grid and store pins of the same color together
+	// Fill in color pairs
 	for (int i = 0; i < rowsCount; ++i) {
-		for (int j = 0; j < colCounts; ++j) {
-			fin >> grid[i][j];
-
+		for (int j = 0; j < colsCount; ++j) {
 			if (grid[i][j] != 0) {	// if not an empty cell
 				mp[grid[i][j]].push_back(point(i, j));
 			}
 		}
 	}
 
-	fin.close();
-
-	// Fill in color pairs
 	for (auto it : mp) {
 		colors.push_back(it.first);
 		colorPairs.push_back({ it.second[0], it.second[1] });
@@ -52,7 +74,7 @@ bool init(const string& directory) {
 void printMaze() {
 	// The maze before solving
 	for (int i = 0; i < rowsCount; ++i) {
-		for (int j = 0; j < colCounts; ++j) {
+		for (int j = 0; j < colsCount; ++j) {
 			cout << grid[i][j] << ' ';
 		}
 		cout << endl;
@@ -60,7 +82,7 @@ void printMaze() {
 
 	// Adding separation between before and after solving the maze
 	cout << endl;
-	for (int i = colCounts * 2 + 5; i >= 0; --i) cout << "-";
+	for (int i = colsCount * 2 + 5; i >= 0; --i) cout << "-";
 	cout << endl << endl;
 }
 
@@ -210,7 +232,7 @@ bool solve(int row, int col, int prvR, int prvC, int colorIdx) {
 
 /* Returns whether or not the given cell is inside the grid */
 inline bool valid(int row, int col) {
-	return (row >= 0 && row < rowsCount && col >= 0 && col < colCounts);
+	return (row >= 0 && row < rowsCount && col >= 0 && col < colsCount);
 }
 
 /* Returns whether or not the current grid state might be solvable */
