@@ -20,7 +20,7 @@ int main() {
 	int startTime = clock();
 
 	try {
-		FlowSolver solver("mazes/game.png");
+		FlowSolver solver("mazes/maze8x8.png");
 		solver.printMaze();
 		solver.solve();
 		solver.printSolution();
@@ -30,6 +30,6 @@ int main() {
 	}
 	
 	int stopTime = clock();
-	cout << "time: " << (stopTime - startTime) / double(CLOCKS_PER_SEC) * 1000.0 << "ms" << endl;
+	cout << endl << endl << "time: " << (stopTime - startTime) / double(CLOCKS_PER_SEC) * 1000.0 << "ms" << endl;
 	return 0;
 }

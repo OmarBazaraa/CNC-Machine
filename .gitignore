@@ -246,3 +246,9 @@ ModelManifest.xml
 /Flow Solver/opencv_ffmpeg320_64.dll
 /Flow Solver/opencv_ffmpeg320.dll
 /Include
+/Flow Solver/opencv_imgproc320d.dll
+/Flow Solver/opencv_imgcodecs320d.dll
+/Flow Solver/opencv_highgui320d.dll
+/Flow Solver/opencv_core320d.dll
+/Flow Solver/opencv_calib3d320d.dll
+/OpenCV

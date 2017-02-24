@@ -124,7 +124,6 @@ void FlowSolver::initGameData() {
 }
 
 void FlowSolver::printMaze() {
-	cout << gridRowsCount << "x" << gridColsCount << endl;
 	for (int i = 0; i < gridRowsCount; ++i) {
 		for (int j = 0; j < gridColsCount; ++j) {
 			cout << setw(5) << grid[i][j];
@@ -134,15 +133,15 @@ void FlowSolver::printMaze() {
 
 	// Adding separation between before and after solving the maze
 	cout << endl;
-	for (int i = gridColsCount * 2 + 5; i >= 0; --i) cout << "-";
+	for (int i = gridColsCount * 6; i >= 0; --i) cout << "-";
 	cout << endl << endl;
 }
 
 void FlowSolver::printSolution() {
 	printMaze();
-
-	cout << "Recursive calls count: " << recursiveCalls << endl;
+	cout << gridRowsCount << "x" << gridColsCount << endl;
 	cout << "Block Width: " << singleBlockWidth << ", Block Height: " << singleBlockHeight << endl;
+	cout << "Recursive calls count: " << recursiveCalls << endl;
 
 	for (int i = 0; i < colorPathes.size(); ++i) {
 		cout << "Color " << i + 1 << ": " << endl;
