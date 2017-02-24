@@ -243,3 +243,6 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/Flow Solver/opencv_ffmpeg320_64.dll
+/Flow Solver/opencv_ffmpeg320.dll
+/Include

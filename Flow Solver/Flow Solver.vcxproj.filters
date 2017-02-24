@@ -2,9 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="Solver.cpp" />
+    <ClCompile Include="FlowSolver.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Solver.h" />
+    <ClInclude Include="FlowSolver.h" />
   </ItemGroup>
 </Project>
