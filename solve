@@ -1,0 +1,1 @@
+adb shell screencap -p /sdcard/game.png;adb pull /sdcard/game.png;adb shell rm /sdcard/game.png;./puzzlesolver;
