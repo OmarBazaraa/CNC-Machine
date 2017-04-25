@@ -1,1 +1,1 @@
-adb shell screencap -p /sdcard/game.png;adb pull /sdcard/game.png;adb shell rm /sdcard/game.png;./puzzlesolver;
+adb shell screencap -p /sdcard/game.png;adb pull /sdcard/game.png;adb shell rm /sdcard/game.png;./puzzlesolver > path.txt;mv path.txt Path.txt;sleep 7;ComputerSide/application.macosx/ComputerSide.app/Contents/MacOS/ComputerSide

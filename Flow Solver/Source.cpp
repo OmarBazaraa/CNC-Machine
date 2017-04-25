@@ -1,5 +1,7 @@
 #include <iostream>
 #include <ctime>
+#include <fstream>
+#include <string>
 #include "FlowSolver.h"
 using namespace std;
 
@@ -17,19 +19,25 @@ inline void boostIO() {
  */
 int main() {
 	boostIO();
+
 	int startTime = clock();
 
 	try {
-		FlowSolver solver("mazes/maze8x8.png");
+		FlowSolver solver("mazes/game.png");
 		solver.printMaze();
 		solver.solve();
-		solver.printSolution();
+		string solution = solver.getSolutionPaths();
+		cout << "Instructions: " << solution << endl;
+		ofstream fout("Path.txt");
+		fout << solution;
+		fout.close();
 	}
 	catch (const exception& ex) {
 		cout << "ERROR::" << ex.what() << endl;
 	}
-	
+
 	int stopTime = clock();
-	cout << endl << endl << "time: " << (stopTime - startTime) / double(CLOCKS_PER_SEC) * 1000.0 << "ms" << endl;
+	cout << endl << "Time: " << (stopTime - startTime) / double(CLOCKS_PER_SEC) * 1000.0 << "ms" << endl;
+
 	return 0;
 }

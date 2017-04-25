@@ -6,6 +6,9 @@
 *.user
 *.userosscache
 *.sln.docstates
+*.sln
+*.vcxproj
+*.vcxproj.filters
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -251,4 +254,6 @@ ModelManifest.xml
 /Flow Solver/opencv_highgui320d.dll
 /Flow Solver/opencv_core320d.dll
 /Flow Solver/opencv_calib3d320d.dll
+/Flow Solver/opencv_world320.dll
+/Flow Solver/opencv_world320d.dll
 /OpenCV
