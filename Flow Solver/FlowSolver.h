@@ -131,7 +131,7 @@ private:
 	 * Compares two vectors ignoring errors according to the given threshold value.
 	 * Returns true if equal, false otherwise
 	 */
-	bool compareVectors(const Vec3b& v1, const Vec3b& v2);
+	bool compareVectors(const Vec3b& v1, const Vec3b& v2, int threshold);
     
 	/**
 	 *  Order color pairs in order to minimize the distance to switch from color to another

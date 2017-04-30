@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
 	bool nextLevel = false;
 
 	if (argc >= 3) {
-		initRow = (int)argv[1];
-		initCol = (int)argv[2];
+		initRow = atoi(argv[1]);
+		initCol = atoi(argv[2]);
 	}
 	if (argc >= 4) {
 		nextLevel = (bool)argv[3];
