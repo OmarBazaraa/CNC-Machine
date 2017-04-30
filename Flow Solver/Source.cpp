@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 		initCol = atoi(argv[2]);
 	}
 	if (argc >= 4) {
-		nextLevel = (bool)argv[3];
+		nextLevel = (argv[3] != "0" && argv[3] != "false");
 	}
 
 	try {
