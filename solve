@@ -1,0 +1,5 @@
+adb shell screencap -p /sdcard/game.png;
+adb pull /sdcard/game.png;
+adb shell rm /sdcard/game.png;
+./flowsolver;
+ComputerSide/application.macosx/ComputerSide.app/Contents/MacOS/ComputerSide;
