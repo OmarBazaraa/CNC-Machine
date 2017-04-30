@@ -74,6 +74,7 @@ private:
 	};
 
 private:
+	const int COLOR_INTENSITY_THRESHOLD = 15;
 	const int EMPTY_BLOCK_COLOR = 0;
 	const int MAX_BACKGROUND_RGB = 100;
 	const int dx[4] = { 1, -1, 0, 0 };
@@ -98,7 +99,7 @@ public:
 	 * Initial pen position is needed to get the minimum solution instructions when start solving
 	 * the maze from the given cell
 	 */
-	FlowSolver(const string& url, int initRow = 0, int initCol = 0, bool nextLevel = false);
+	FlowSolver(const string& path, int initRow = 0, int initCol = 0, bool nextLevel = false);
 
 	/**
 	 * Destructor
@@ -107,9 +108,9 @@ public:
 
 private:
 	/**
-	 * Loads image from the given url into a matrix of colors
+	 * Loads image from the given path into a matrix of colors
 	 */
-	bool loadImage(const string& url);
+	bool loadImage(const string& path);
 
 	/**
 	 * Detects the game borders and the grid size
@@ -125,6 +126,12 @@ private:
 	 * Fills the matrix corresponding to the image and the color pairs
 	 */
 	void initGameData();
+
+	/**
+	 * Compares two vectors ignoring errors according to the given threshold value.
+	 * Returns true if equal, false otherwise
+	 */
+	bool compareVectors(const Vec3b& v1, const Vec3b& v2);
     
 	/**
 	 *  Order color pairs in order to minimize the distance to switch from color to another

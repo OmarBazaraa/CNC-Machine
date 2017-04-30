@@ -1,9 +1,9 @@
 #include "FlowSolver.h"
 
-FlowSolver::FlowSolver(const string& url, int initRow, int initCol, bool nextLevel) {
+FlowSolver::FlowSolver(const string& path, int initRow, int initCol, bool nextLevel) {
     // Load the image into matrix image
-    if (!loadImage(url)) {
-        string errorMessage = "Could not load the image at: " + url;
+    if (!loadImage(path)) {
+        string errorMessage = "Could not load the image at: " + path;
         cout << errorMessage<<endl;
         
         throw exception(errorMessage.c_str());
@@ -27,11 +27,11 @@ FlowSolver::~FlowSolver() {
 	image.deallocate();
 }
 
-bool FlowSolver::loadImage(const string& url) {
-    image = imread(url, CV_LOAD_IMAGE_COLOR);   // Read the file
+bool FlowSolver::loadImage(const string& path) {
+    image = imread(path, CV_LOAD_IMAGE_COLOR);   // Read the file
     
 	// Check for invalid input
-    if (!image.data) { 
+    if (image.empty() || !image.data) { 
         return false;
     }
     
@@ -39,80 +39,86 @@ bool FlowSolver::loadImage(const string& url) {
 }
 
 void FlowSolver::detectGameStructure() {
-    gridColsCount = gridRowsCount = 0;
-    singleBlockWidth = singleBlockHeight = -1;
-    horizontalBorderThickness = verticalBorderThickness = -1;
-    leftBorder = topBorder = bottomBorder = -1;
-    
-    Vec3b borderIntensity;
-    int imageHalfRowsCount = image.rows / 2;
-    int imageHalfColsCount = image.cols / 2;
-    
-    // Loop to get border color and leftBorder position
-    for (int i = 1; i < image.cols; ++i) {
-        if (image.at<Vec3b>(imageHalfRowsCount, i) != image.at<Vec3b>(imageHalfRowsCount, i - 1)) {
-            borderIntensity = image.at<Vec3b>(imageHalfRowsCount, i);
-            leftBorder = i;
-            break;
-        }
-    }
-    // Loop from top until top border to get top border position
-    for (int i = 0; i < image.rows; ++i) {
-        Vec3b intensity = image.at<Vec3b>(i, imageHalfColsCount);
-        if (intensity == borderIntensity) {
-            topBorder = i;
-            break;
-        }
-    }
-    // Loop to get vertial border thickness
-    for (int i = leftBorder; i < image.cols; ++i) {
-        if (image.at<Vec3b>(topBorder + 10, i) != borderIntensity) {
-            verticalBorderThickness = i - leftBorder;
-            break;
-        }
-    }
-    // Loop to get horizontal border thickness
-    for (int i = topBorder; i < image.rows; ++i) {
-        Vec3b intensity = image.at<Vec3b>(i, leftBorder + verticalBorderThickness + 10);
-        if (intensity != borderIntensity) {
-            horizontalBorderThickness = i - topBorder;
-            break;
-        }
-    }
-    // Loop to get bottom border
-    for (int i = image.rows - 1; i > 0; --i) {
-        if (image.at<Vec3b>(i, leftBorder + verticalBorderThickness + 10) == borderIntensity) {
-            bottomBorder = i;
-            break;
-        }
-    }
-    
-    // Loop to get cell width
-    for (int i = leftBorder + verticalBorderThickness; i < image.cols; ++i) {
-        if (image.at<Vec3b>(topBorder + horizontalBorderThickness + 10, i) == borderIntensity) {
-            singleBlockWidth = i - (leftBorder + verticalBorderThickness);
-            break;
-        }
-    }
-    // Loop to get number of columns in the grid
-    for (int i = (leftBorder + verticalBorderThickness + singleBlockWidth / 2); i < image.cols; i += verticalBorderThickness + singleBlockWidth) {
-        ++gridColsCount;
-    }
+	gridColsCount = gridRowsCount = 0;
+	singleBlockWidth = singleBlockHeight = -1;
+	horizontalBorderThickness = verticalBorderThickness = -1;
+	leftBorder = topBorder = bottomBorder = -1;
 
-    // Loop to get cell height
-    for (int i = topBorder + horizontalBorderThickness; i < image.rows; ++i) {
-        if (image.at<Vec3b>(i, leftBorder + horizontalBorderThickness + 2) == borderIntensity) {
-            singleBlockHeight = i - (topBorder + horizontalBorderThickness);
-            break;
-        }
-    }
-    // Loop to get number of rows in the grid
-    for (int i = (topBorder + horizontalBorderThickness + singleBlockHeight / 2); i < bottomBorder; i += horizontalBorderThickness + singleBlockHeight) {
-        ++gridRowsCount;
-    }
+	Vec3b borderIntensity;
+	int imageHalfRowsCount = image.rows / 2;
+	int imageHalfColsCount = image.cols / 2;
+
+	// Loop to get border color and leftBorder position
+	for (int i = 1; i < image.cols; ++i) {
+		if (!compareVectors(image.at<Vec3b>(imageHalfRowsCount, i), image.at<Vec3b>(imageHalfRowsCount, i - 1))) {
+			borderIntensity = image.at<Vec3b>(imageHalfRowsCount, i);
+			leftBorder = i;
+			break;
+		}
+	}
+	// Loop from top until top border to get top border position
+	for (int i = 0; i < image.rows; ++i) {
+		Vec3b intensity = image.at<Vec3b>(i, imageHalfColsCount);
+		if (compareVectors(intensity, borderIntensity)) {
+			topBorder = i;
+			break;
+		}
+	}
+	// Loop to get vertial border thickness
+	for (int i = leftBorder; i < image.cols; ++i) {
+		Vec3b intensity = image.at<Vec3b>(topBorder + 10, i);
+		if (!compareVectors(intensity, borderIntensity)) {
+			verticalBorderThickness = i - leftBorder;
+			break;
+		}
+	}
+	// Loop to get horizontal border thickness
+	for (int i = topBorder; i < image.rows; ++i) {
+		Vec3b intensity = image.at<Vec3b>(i, leftBorder + verticalBorderThickness + 10);
+		if (!compareVectors(intensity, borderIntensity)) {
+			horizontalBorderThickness = i - topBorder;
+			break;
+		}
+	}
+	// Loop to get bottom border
+	for (int i = image.rows - 1; i > 0; --i) {
+		Vec3b intensity = image.at<Vec3b>(i, leftBorder + verticalBorderThickness + 10);
+		if (compareVectors(intensity, borderIntensity)) {
+			bottomBorder = i;
+			break;
+		}
+	}
+
+	// Loop to get cell width
+	for (int i = leftBorder + verticalBorderThickness; i < image.cols; ++i) {
+		Vec3b intensity = image.at<Vec3b>(topBorder + horizontalBorderThickness + 10, i);
+		if (compareVectors(intensity, borderIntensity)) {
+			singleBlockWidth = i - (leftBorder + verticalBorderThickness);
+			break;
+		}
+	}
+	// Loop to get number of columns in the grid
+	for (int i = (leftBorder + verticalBorderThickness + singleBlockWidth / 2); i < image.cols; i += verticalBorderThickness + singleBlockWidth) {
+		++gridColsCount;
+	}
+
+	// Loop to get cell height
+	for (int i = topBorder + horizontalBorderThickness; i < image.rows; ++i) {
+		Vec3b intensity = image.at<Vec3b>(i, leftBorder + horizontalBorderThickness + 2);
+		if (compareVectors(intensity, borderIntensity)) {
+			singleBlockHeight = i - (topBorder + horizontalBorderThickness);
+			break;
+		}
+	}
+	// Loop to get number of rows in the grid
+	for (int i = (topBorder + horizontalBorderThickness + singleBlockHeight / 2); i < bottomBorder; i += horizontalBorderThickness + singleBlockHeight) {
+		++gridRowsCount;
+	}
 }
 
 void FlowSolver::detectNextLevelButton() {
+	Vec3b borderColor(255, 255, 255);
+
 	int imageHalfRowsCount = image.rows / 2;
 	int imageHalfColsCount = image.cols / 2;
 	
@@ -128,9 +134,7 @@ void FlowSolver::detectNextLevelButton() {
 	for (int i = 0; i < image.cols; ++i) {
 		Vec3b intensity = image.at<Vec3b>(imageHalfRowsCount, i);
 
-		if ((255 - (int)intensity[0]) <= dialogBorderColorThreshold &&
-			(255 - (int)intensity[1]) <= dialogBorderColorThreshold &&
-			(255 - (int)intensity[2]) <= dialogBorderColorThreshold) {
+		if (compareVectors(borderColor, intensity)) {
 			dialogLeftBorder = i;
 			break;
 		}
@@ -140,9 +144,7 @@ void FlowSolver::detectNextLevelButton() {
 	for (int i = image.cols - 1; i > 0; --i) {
 		Vec3b intensity = image.at<Vec3b>(imageHalfRowsCount, i);
 
-		if ((255 - (int)intensity[0]) <= dialogBorderColorThreshold &&
-			(255 - (int)intensity[1]) <= dialogBorderColorThreshold &&
-			(255 - (int)intensity[2]) <= dialogBorderColorThreshold) {
+		if (compareVectors(borderColor, intensity)) {
 			dialogRightBorder = i;
 			break;
 		}
@@ -160,9 +162,7 @@ void FlowSolver::detectNextLevelButton() {
 			Vec3b intensity = image.at<Vec3b>(i, j);
 
 			// Detect color difference, if more than thershold, ignore this one
-			if ((255 - (int)intensity[0]) > dialogBorderColorThreshold ||
-				(255 - (int)intensity[1]) > dialogBorderColorThreshold ||
-				(255 - (int)intensity[2]) > dialogBorderColorThreshold) {
+			if (!compareVectors(borderColor, intensity)) {
 				isBorder = false;
 				break;
 			}
@@ -222,6 +222,14 @@ void FlowSolver::initGameData() {
     }
     
     orderColorPairs(unorderedColorPairs);
+}
+
+bool FlowSolver::compareVectors(const Vec3b& v1, const Vec3b& v2) {
+	int b = abs((int)v1[0] - (int)v2[0]);
+	int g = abs((int)v1[1] - (int)v2[1]);
+	int r = abs((int)v1[2] - (int)v2[2]);
+
+	return (r <= COLOR_INTENSITY_THRESHOLD && g <= COLOR_INTENSITY_THRESHOLD && b <= COLOR_INTENSITY_THRESHOLD);
 }
 
 void FlowSolver::orderColorPairs(vector<pair<point, point>>& unorderedColorPairs) {

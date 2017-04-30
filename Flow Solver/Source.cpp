@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
 
 	int startTime = clock();
 
+	// Get passed arguments
 	int initRow = 0;
 	int initCol = 0;
 	bool nextLevel = false;
@@ -36,7 +37,6 @@ int main(int argc, char* argv[]) {
 		initRow = (int)argv[1];
 		initCol = (int)argv[2];
 	}
-
 	if (argc >= 4) {
 		nextLevel = (bool)argv[3];
 	}
