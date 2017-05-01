@@ -50,7 +50,9 @@ void FlowSolver::detectGameStructure() {
 
 	// Loop to get border color and leftBorder position
 	for (int i = 1; i < image.cols; ++i) {
-		if (!compareVectors(image.at<Vec3b>(imageHalfRowsCount, i), image.at<Vec3b>(imageHalfRowsCount, i - 1))) {
+		Vec3b curIntensity = image.at<Vec3b>(imageHalfRowsCount, i);
+		Vec3b prvIntensity = image.at<Vec3b>(imageHalfRowsCount, i - 1);
+		if (!compareVectors(curIntensity, prvIntensity, COLOR_INTENSITY_THRESHOLD)) {
 			borderIntensity = image.at<Vec3b>(imageHalfRowsCount, i);
 			leftBorder = i;
 			break;

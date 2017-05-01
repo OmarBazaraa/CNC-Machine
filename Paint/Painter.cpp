@@ -57,7 +57,9 @@ string Painter::drawingInstructions() {
 
 	int currentRow = 0;
 	int currentCol = 0;
-	bool pressed = false;	// pressed or released
+	int cnt = 0;
+	char dir;
+	bool pressed = false;
 
 	// Generate drawing instructions
 	for (int i = 0; i < blackPixelsPos.size(); ++i) {
@@ -68,6 +70,10 @@ string Painter::drawingInstructions() {
 		int diffCol = col - currentCol;
 		
 		if (abs(diffCol) + abs(diffRow) > 1 && pressed) {
+			if (cnt > 0) {
+				result += dir + " " + to_string(cnt) + "\n";
+			}
+
 			result += "R\n";
 			pressed = false;
 
