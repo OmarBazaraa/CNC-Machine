@@ -208,6 +208,8 @@ void FlowSolver::initGameData() {
 			int G = (int)intensity.val[1];
 			int R = (int)intensity.val[2];
 
+			grid[i][j] = EMPTY_BLOCK_COLOR;
+
 			if (R + G + B > MAX_BACKGROUND_RGB) {
 				colorRGB cellIntesity(R, G, B); // BGR -> RGB
 

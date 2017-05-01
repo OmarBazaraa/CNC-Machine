@@ -39,8 +39,6 @@ bool Painter::loadBinaryImage(const string& path) {
 }
 
 string Painter::drawingInstructions() {
-	string result;
-
 	vector<pair<int, int>> blackPixelsPos;
 
 	// Get black pixels positions
@@ -57,9 +55,8 @@ string Painter::drawingInstructions() {
 
 	int currentRow = 0;
 	int currentCol = 0;
-	int cnt = 0;
-	char dir;
 	bool pressed = false;
+	string instructions;
 
 	// Generate drawing instructions
 	for (int i = 0; i < blackPixelsPos.size(); ++i) {
@@ -70,26 +67,20 @@ string Painter::drawingInstructions() {
 		int diffCol = col - currentCol;
 		
 		if (abs(diffCol) + abs(diffRow) > 1 && pressed) {
-			if (cnt > 0) {
-				result += dir + " " + to_string(cnt) + "\n";
-			}
-
-			result += "R\n";
+			instructions += "R";
 			pressed = false;
-
-			if (abs(diffCol) > 0) {
-				result += (diffCol > 0 ? "> " : "< ") + to_string(abs(diffCol)) + "\n";
-			}
-
-			if (abs(diffRow) > 0) {
-				result += (diffRow > 0 ? "v " : "^ ") + to_string(abs(diffRow)) + "\n";
-			}
 		}
 
-		
+		if (abs(diffCol) > 0) {
+			instructions.append(abs(diffCol), diffCol > 0 ? '>' : '<');
+		}
+
+		if (abs(diffRow) > 0) {
+			instructions.append(abs(diffRow), diffRow > 0 ? 'v' : '^');
+		}
 
 		if (!pressed) {
-			result += "P\n";
+			instructions += "P";
 			pressed = true;
 		}
 
@@ -97,5 +88,31 @@ string Painter::drawingInstructions() {
 		currentCol = col;
 	}
 
+	instructions += "R";
+
+
+	string result;
+	int cnt = 1;
+	char prv = instructions[0];
+
+	// Compress instructions
+	for (int i = 1; i < instructions.size(); ++i) {
+		if (prv == instructions[i]) {
+			++cnt;
+		}
+		else {
+			result += prv;
+
+			if (prv != 'P' && prv != 'R') {
+				result += " " + to_string(cnt);
+			}
+
+			result += "\n";
+			
+			prv = instructions[i];
+			cnt = 1;
+		}
+	}
+	
 	return result;
 }

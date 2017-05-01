@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 		Painter painter(IMAGE_FILE);
 		imwrite(BI_IMAGE_FILE, painter.image);
 		string instructions = painter.drawingInstructions();
-		//cout << "Instructions: " << endl << instructions << endl;
+		cout << "Instructions: " << endl << instructions << endl;
 
 		// Output instructions into a file to be send to Arduino
 		ofstream fout(INSTRUCTIONS_FILE);
