@@ -30,7 +30,7 @@ FlowSolver::~FlowSolver() {
 bool FlowSolver::loadImage(const string& path) {
 	image = imread(path, CV_LOAD_IMAGE_COLOR);   // Read the file
 
-												 // Check for invalid input
+	// Check for invalid input
 	if (image.empty() || !image.data) {
 		return false;
 	}
