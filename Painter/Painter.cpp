@@ -39,53 +39,82 @@ bool Painter::loadBinaryImage(const string& path) {
 }
 
 string Painter::drawingInstructions() {
-	vector<pair<int, int>> blackPixelsPos;
-
-	// Get black pixels positions
-	for (int i = 0; i < image.rows; ++i) {
-		for (int j = 0; j < image.cols; ++j) {
-			// If white pixel then continue
-			if ((bool)image.at<uchar>(i, j)) {
-				continue;
-			}
-
-			blackPixelsPos.push_back({ i, j });
-		}
-	}
-
 	int currentRow = 0;
 	int currentCol = 0;
 	bool pressed = false;
 	string instructions;
 
 	// Generate drawing instructions
-	for (int i = 0; i < blackPixelsPos.size(); ++i) {
-		int row = blackPixelsPos[i].first;
-		int col = blackPixelsPos[i].second;
+	for (int i = 0; i < image.rows; ++i) {
+		int leftCol = -1;
+		int rightCol = -1;
 
-		int diffRow = row - currentRow;
-		int diffCol = col - currentCol;
-		
-		if (abs(diffCol) + abs(diffRow) > 1 && pressed) {
-			instructions += "R";
-			pressed = false;
+		// Detect first black pixel from the left
+		for (int j = 0; j < image.cols; ++j) {
+			// If white pixel then continue
+			if ((bool)image.at<uchar>(i, j)) {
+				continue;
+			}
+
+			leftCol = j;
+			break;
 		}
 
-		if (abs(diffCol) > 0) {
-			instructions.append(abs(diffCol), diffCol > 0 ? '>' : '<');
+		// Detect first black pixel from the right
+		for (int j = image.cols - 1; j >= 0; --j) {
+			// If white pixel then continue
+			if ((bool)image.at<uchar>(i, j)) {
+				continue;
+			}
+
+			rightCol = j;
+			break;
 		}
 
-		if (abs(diffRow) > 0) {
-			instructions.append(abs(diffRow), diffRow > 0 ? 'v' : '^');
+		// Continue if no black pixels in this row
+		if (leftCol == -1 || rightCol == -1) {
+			continue;
 		}
 
-		if (!pressed) {
-			instructions += "P";
-			pressed = true;
+		int startCol = leftCol;
+		int step = 1;
+
+		// Detect whether to start from right or left is shorter
+		if (abs(rightCol - currentCol) < abs(leftCol - currentCol)) {
+			startCol = rightCol;
+			step = -1;
 		}
 
-		currentRow = row;
-		currentCol = col;
+		for (int j = startCol; j >= leftCol && j <= rightCol; j += step) {
+			// If white pixel then continue
+			if ((bool)image.at<uchar>(i, j)) {
+				continue;
+			}
+
+			int diffRow = i - currentRow;
+			int diffCol = j - currentCol;
+
+			if (pressed && abs(diffCol) + abs(diffRow) > 1) {
+				instructions += "R";
+				pressed = false;
+			}
+
+			if (abs(diffCol) > 0) {
+				instructions.append(abs(diffCol), diffCol > 0 ? '>' : '<');
+			}
+
+			if (abs(diffRow) > 0) {
+				instructions.append(abs(diffRow), diffRow > 0 ? 'v' : '^');
+			}
+
+			if (!pressed) {
+				instructions += "P";
+				pressed = true;
+			}
+
+			currentRow = i;
+			currentCol = j;
+		}
 	}
 
 	string result;
