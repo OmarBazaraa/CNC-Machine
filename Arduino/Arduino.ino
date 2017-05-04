@@ -1,119 +1,110 @@
-#include <Servo.h> 
+#include <Servo.h>
 
-const int STEP_PIN_X = 14;
-const int DIR_PIN_X = 15;
-const int STEP_PIN_Y = 16;
-const int DIR_PIN_Y = 17;
-const int STEPPER_MODE_PIN = 18;
-int deltaX = 0;
-int deltaY = 0;
-Servo ZServo;
+const long STEP_PIN_X = 16;
+const long DIR_PIN_X = 17;
+const long STEP_PIN_Y = 14;
+const long DIR_PIN_Y = 15;
+const long STEPPER_MODE_PIN = 18;
 
-void setup()
-{
+// Motor variables
+Servo servoZ;
+long motorStepsCount = 0;
+
+void setup() {
   // Configure serial port
   Serial.begin(9600);
-  
+
   // Setup pins mode
   pinMode(STEP_PIN_X, OUTPUT);
   pinMode(DIR_PIN_X, OUTPUT);
   pinMode(STEP_PIN_Y, OUTPUT);
   pinMode(DIR_PIN_Y, OUTPUT);
   pinMode(STEPPER_MODE_PIN, OUTPUT);
-  
+
   // Setup servo motor
-  ZServo.attach(9);
-  ZServo.write(90); // Set servo to mid-point
+  servoZ.attach(9);
+  servoZ.write(90); // Set servo to mid-polong
   moveZ(0);
-  
+
   // Setup stepper motor to full step mode
   digitalWrite(STEPPER_MODE_PIN, HIGH);
 }
 
-int x = 0;
-int incomingByte =-1;
-int numberOfSteps = 18000;
+void loop() {
+  if (Serial.available() <= 0)
+    return;
 
-void moveZ(int d)
-{
-  if( d == 1)
-    ZServo.write(90);
-  else
-    ZServo.write(120);
+  int incommingByte = Serial.read();
+
+  // Set up moter step count
+  if (incommingByte == 'S') {
+    readMotorStepsCount();
+  }
+  // Else try to excute the command if support
+  else {
+    executeCommand(incommingByte);
+  }
+}
+
+// ==========================================
+//  CNC COMMANDS FUNCTIONS
+// ==========================================
+
+void executeCommand(int command) {
+  
+  if (command == '^')     // Move X Backwards
+    moveStepper(STEP_PIN_X, DIR_PIN_X, 1);
+  else if (command == 'v')  // Move X Forward
+    moveStepper(STEP_PIN_X, DIR_PIN_X, 0);
+  else if (command == '>')  // Move Y Right
+    moveStepper(STEP_PIN_Y, DIR_PIN_Y, 1);
+  else if (command == '<')  // Move Y Left
+    moveStepper(STEP_PIN_Y, DIR_PIN_Y, 0);
+  else if (command == 'P')  // Push Pen
+    moveZ(1);
+  else if (command == 'R')  // Release Pen
+    moveZ(0);
+
+  //Send Acknowldegement
+  Serial.write('A');
+}
+
+// ==========================================
+//  CONFIGURATIONS FUNCTIONS
+// ==========================================
+
+void readMotorStepsCount() {
+  motorStepsCount = 0;
+  int bytesReceived = 0;
+
+  while (bytesReceived < 4) {
+    if (Serial.available() <= 0)
+      continue;
+
+    long incomingByte = Serial.read();
+    incomingByte <<= (8 * bytesReceived);
+    motorStepsCount |= incomingByte;
+
+    bytesReceived++;
+  }
+}
+
+// ==========================================
+//  MOTOR FUNCTIONS
+// ==========================================
+
+void moveZ(long d) {
+  servoZ.write(d == 1 ? 90 : 120);
   delay(200);
 }
 
-void move(int stepPin, int directionPin, int dir) {
+void moveStepper(long stepPin, long directionPin, long dir) {
   digitalWrite(directionPin, dir);
-  
-  for(int i = 0; i < numberOfSteps; i++)
-  {   
+
+  for (long i = 0; i < motorStepsCount; i++) {
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(40);
     digitalWrite(stepPin, LOW);
     delayMicroseconds(40);
-    digitalWrite(stepPin, HIGH);
-    delayMicroseconds(40);
-    digitalWrite(stepPin, LOW);
-    delayMicroseconds(40);
-  }
-  
-  delay(20);
-}
-
-void movePenBack() {
-  // Return back to where we started before solving 
-  while (deltaX != 0){
-    if (deltaX < 0){
-      deltaX++;
-      move(STEP_PIN_X, DIR_PIN_X, 0);
-    } 
-    else if (deltaX > 0){
-      deltaX--;
-      move(STEP_PIN_X, DIR_PIN_X, 1);
-    }   
-  }
-  while (deltaY != 0){
-    if (deltaY < 0) {
-      deltaY++;
-      move(STEP_PIN_Y, DIR_PIN_Y, 0);
-    }
-    else if (deltaY > 0) {
-      deltaY--;
-      move(STEP_PIN_Y, DIR_PIN_Y, 1);
-    }
-  }
-}
-
-void loop()
-{
-  while (Serial.available() > 0) {
-    incomingByte = Serial.read();
-    
-    if (incomingByte == '^') {//Move X Backwards
-      deltaX++;
-      move(STEP_PIN_X, DIR_PIN_X, 0);
-    }
-    else if (incomingByte == 'v') {  //Move X Forward
-      deltaX--;
-      move(STEP_PIN_X, DIR_PIN_X, 1);
-    }
-    else if (incomingByte == '>') { //Move Y Right
-      deltaY--;
-      move(STEP_PIN_Y, DIR_PIN_Y, 1);
-    }
-    else if (incomingByte == '<') { //Move Y Left
-      deltaY++;
-      move(STEP_PIN_Y, DIR_PIN_Y, 0);
-    }
-    else if (incomingByte == 'P') { //Push Pen
-      moveZ(1);
-    }
-    else if (incomingByte == 'R') { //Release Pen
-      moveZ(0);
-    }
-    else if (incomingByte == '=') { //End solving
-      movePenBack();
-    }
   }
 }
