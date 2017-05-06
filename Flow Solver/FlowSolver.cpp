@@ -4,17 +4,17 @@ FlowSolver::FlowSolver(const string& path, int initRow, int initCol, bool nextLe
 	// Load the image into matrix image
 	if (!loadImage(path)) {
 		string errorMessage = "Could not load the image at: " + path;
-		cout << errorMessage << endl;
-
 		throw exception(errorMessage.c_str());
 	}
 
+	// Initialization
 	this->initPenRow = initRow;
 	this->initPenCol = initCol;
-	this->nextLevelRow = -1;
-	this->nextLevelCol = -1;
+	this->nextLevelPixelRow = -1;
+	this->nextLevelPixelCol = -1;
 
 	if (nextLevel) {
+		detectGameStructure();
 		detectNextLevelButton();
 	}
 	else {
@@ -185,10 +185,10 @@ void FlowSolver::detectNextLevelButton() {
 		i += dialogBorderThickness;
 	}
 
-	nextLevelRow = buttonTopBorder + (buttonBottomBorder - buttonTopBorder) / 2;
-	nextLevelCol = dialogLeftBorder + (dialogRightBorder - dialogLeftBorder) / 2;
+	nextLevelPixelRow = buttonTopBorder + (buttonBottomBorder - buttonTopBorder) / 2;
+	nextLevelPixelCol = dialogLeftBorder + (dialogRightBorder - dialogLeftBorder) / 2;
 
-	if (nextLevelRow == -1 || nextLevelCol == -1) {
+	if (nextLevelPixelRow == -1 || nextLevelPixelCol == -1) {
 		throw exception("Cannot detect next level button");
 	}
 }
@@ -360,7 +360,28 @@ string FlowSolver::solutionInstructions() {
 
 string FlowSolver::goToNextLevelInstructions() {
 	// To be implemented if ADB is not used
-	string result = to_string(nextLevelRow) + " " + to_string(nextLevelCol);
+	string result = to_string(nextLevelPixelRow) + " " + to_string(nextLevelPixelCol);
+	
+	int nextBtnRow = (nextLevelPixelRow - topBorder) / (singleBlockWidth + verticalBorderThickness);
+	int nextBtnCol = (nextLevelPixelCol  - leftBorder) / (singleBlockHeight + horizontalBorderThickness);
+
+	// Separation
+	result += '\n';
+
+	// Release instruction
+	result += "R";
+
+	// Generate instructions to reach next level button
+	int diffStepsRows = nextBtnRow - initPenRow;
+	int diffStepsCols = nextBtnCol - initPenCol;
+
+	// Append instructions to reach the next levl button
+	result.append(abs(diffStepsRows), diffStepsRows < 0 ? '^' : 'v');
+	result.append(abs(diffStepsCols), diffStepsCols < 0 ? '<' : '>');
+
+	// Press then release instruction
+	result += "PR";
+
 	return result;
 }
 

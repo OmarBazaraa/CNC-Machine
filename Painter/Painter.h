@@ -14,17 +14,20 @@ using namespace cv;
 using namespace std;
 
 #define BLACK_WHITE_THRESHOLD	180
+#define MAX_ROWS_COUNT          454
+#define MAX_COLS_COUNT          340
 
 class Painter
 {
 public:
 	Mat image;
+	double scaleRatio;
 
 public:
 	/**
 	 * Constructor
 	 */
-	Painter(const string& path);
+	Painter(const string& path, double scaleRatio = 1.0);
 
 	/**
 	 * Destructor

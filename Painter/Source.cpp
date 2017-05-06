@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
 	// Get passed arguments
 	string imagePath = IMAGE_FILE;
 	string instructionsPath = INSTRUCTIONS_FILE;
+	double scaleRatio = 1.0;
 
 	// Get image path
 	if (argc >= 2) {
@@ -38,11 +39,15 @@ int main(int argc, char* argv[]) {
 	}
 	// Get instructions path
 	if (argc >= 3) {
-		imagePath = argv[2];
+		instructionsPath = argv[2];
+	}
+	// Get scale ratio
+	if (argc >= 4) {
+		scaleRatio = atof(argv[3]);
 	}
 
 	try {
-		Painter painter(IMAGE_FILE);
+		Painter painter(IMAGE_FILE, scaleRatio);
 		imwrite(BI_IMAGE_FILE, painter.image);
 		string instructions = painter.drawingInstructions();
 		//cout << "Instructions: " << endl << instructions << endl;

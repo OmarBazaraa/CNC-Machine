@@ -88,7 +88,7 @@ private:
 	int horizontalBorderThickness, verticalBorderThickness;
 	int leftBorder, topBorder, bottomBorder;
 	int initPenRow, initPenCol;	// Needed to order color pairs in the best way for the current pen position of the robot
-	int nextLevelRow, nextLevelCol;
+	int nextLevelPixelRow, nextLevelPixelCol;
 	int recursiveCalls = 0;		// Just for statistical purposes
 	vector<pair<point, point>> colorPairs;
 	vector<vector<direction>> colorPathes;

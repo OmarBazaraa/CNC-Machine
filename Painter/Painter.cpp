@@ -1,6 +1,8 @@
 #include "Painter.h"
 
-Painter::Painter(const string& path) {
+Painter::Painter(const string& path, double scaleRatio) {
+	this->scaleRatio = min(1.0, scaleRatio);
+
 	// Load the image into matrix image
 	if (!loadBinaryImage(path)) {
 		string errorMessage = "Could not load the image at: " + path;
@@ -16,25 +18,35 @@ Painter::~Painter() {
 
 bool Painter::loadBinaryImage(const string& path) {
 	// Load colored image from file
-	cv::Mat rgbMat = imread(path, CV_LOAD_IMAGE_COLOR);
+	cv::Mat grayMat = imread(path, CV_LOAD_IMAGE_GRAYSCALE);
 
 	// Check for invalid input
-	if (rgbMat.empty() || !rgbMat.data) {
+	if (grayMat.empty() || !grayMat.data) {
 		return false;
 	}
 
-	// Grayscale matrix
-	cv::Mat grayMat(rgbMat.size(), CV_8U);
+	// Resize image above max size
+	cv::Mat tempMat;
 
-	// Convert BGR to Gray
-	cv::cvtColor(rgbMat, grayMat, CV_BGR2GRAY);
+	if (grayMat.rows > grayMat.cols) {
+		if (grayMat.rows > MAX_ROWS_COUNT) {
+			double ratio = MAX_ROWS_COUNT / (double)grayMat.rows;
+			cv::resize(grayMat, tempMat, cv::Size(0, 0), ratio, ratio);
+		}
+	}
+	else {
+		if (grayMat.cols > MAX_COLS_COUNT) {
+			double ratio = MAX_COLS_COUNT / (double)grayMat.cols;
+			cv::resize(grayMat, tempMat, cv::Size(0, 0), ratio, ratio);
+		}
+	}
 
-	// Resizing image
+	// Resizing image accourding to user input
 	cv::Mat resizedMat;
-	cv:resize(grayMat, resizedMat, cv::Size(0, 0), 0.3, 0.3);
+	cv::resize(tempMat, resizedMat, cv::Size(0, 0), scaleRatio, scaleRatio);
 	
 	// Apply thresholding
-	cv::adaptiveThreshold(resizedMat, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 9, 4);
+	cv::adaptiveThreshold(resizedMat, image, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 15, 12);
 	return true;
 }
 
