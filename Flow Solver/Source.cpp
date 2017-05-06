@@ -5,7 +5,7 @@
 #include "FlowSolver.h"
 using namespace std;
 
-#define IMAGE_FILE          "mazes/next.png"
+#define IMAGE_FILE          "mazes/game.png"
 #define INSTRUCTIONS_FILE   "instructions.txt"
 
 /**
@@ -32,9 +32,9 @@ int main(int argc, char* argv[]) {
 	// Get passed arguments
 	string imagePath = IMAGE_FILE;
 	string instructionsPath = INSTRUCTIONS_FILE;
-	int initRow = 4;
-	int initCol = 4;
-	bool nextLevel = true;
+	int initRow = 0;
+	int initCol = 0;
+	bool nextLevel = false;
 
 	// Get image path
 	if (argc >= 2) {

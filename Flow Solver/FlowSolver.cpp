@@ -13,14 +13,11 @@ FlowSolver::FlowSolver(const string& path, int initRow, int initCol, bool nextLe
 	this->nextLevelPixelRow = -1;
 	this->nextLevelPixelCol = -1;
 
+	detectGameStructure();
 	if (nextLevel) {
-		detectGameStructure();
 		detectNextLevelButton();
 	}
-	else {
-		detectGameStructure();
-		initGameData();
-	}
+	initGameData();
 }
 
 FlowSolver::~FlowSolver() {
@@ -361,7 +358,8 @@ string FlowSolver::solutionInstructions() {
 string FlowSolver::goToNextLevelInstructions() {
 	// To be implemented if ADB is not used
 	string result = to_string(nextLevelPixelRow) + " " + to_string(nextLevelPixelCol);
-	
+	return result;
+
 	int nextBtnRow = (nextLevelPixelRow - topBorder) / (singleBlockWidth + verticalBorderThickness);
 	int nextBtnCol = (nextLevelPixelCol  - leftBorder) / (singleBlockHeight + horizontalBorderThickness);
 
