@@ -19,6 +19,7 @@ inline void boostIO() {
 
 inline string solveMaze(FlowSolver& solver);
 inline string goToNextLevel(FlowSolver& solver);
+inline void outputInstructions(const string& instructions, const string& path);
 
 /**
  * Main function
@@ -29,29 +30,38 @@ int main(int argc, char* argv[]) {
 	int startTime = clock();
 
 	// Get passed arguments
+	string imagePath = IMAGE_FILE;
+	string instructionsPath = INSTRUCTIONS_FILE;
 	int initRow = 0;
 	int initCol = 0;
 	bool nextLevel = false;
 
-	if (argc >= 3) {
-		initRow = atoi(argv[1]);
-		initCol = atoi(argv[2]);
+	// Get image path
+	if (argc >= 2) {
+		imagePath = argv[1];
 	}
-	if (argc >= 4) {
-		nextLevel = (argv[3] != "0" && argv[3] != "false");
+	// Get instructions path
+	if (argc >= 3) {
+		imagePath = argv[2];
+	}
+	// Get intial position
+	if (argc >= 5) {
+		initRow = atoi(argv[3]);
+		initCol = atoi(argv[4]);
+	}
+	// Get mode of operation
+	if (argc >= 6) {
+		nextLevel = (argv[5] != "0" && argv[5] != "false");
 	}
 
 	try {
-		FlowSolver solver(IMAGE_FILE, initRow, initCol, nextLevel);
+		FlowSolver solver(imagePath, initRow, initCol, nextLevel);
 		string instructions = (nextLevel ? goToNextLevel(solver) : solveMaze(solver));
 		cout << "Instructions: " << endl << instructions << endl;
-
-		// Output instructions into a file to be send to Arduino
-		ofstream fout(INSTRUCTIONS_FILE);
-		fout << instructions;
-		fout.close();
+		outputInstructions(instructions, instructionsPath);
 	}
 	catch (const exception& ex) {
+		outputInstructions("-1", instructionsPath);
 		cout << "ERROR::" << ex.what() << endl;
 	}
 
@@ -79,4 +89,11 @@ inline string solveMaze(FlowSolver& solver) {
 inline string goToNextLevel(FlowSolver& solver) {
 	// Return instructions
 	return solver.goToNextLevelInstructions();
+}
+
+inline void outputInstructions(const string& instructions, const string& path) {
+	// Output instructions into a file to be send to Arduino
+	ofstream fout(path);
+	fout << instructions;
+	fout.close();
 }

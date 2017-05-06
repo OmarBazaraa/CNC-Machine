@@ -117,6 +117,12 @@ string Painter::drawingInstructions() {
 		}
 	}
 
+	instructions += "R";
+
+	return instructions;
+}
+
+string Painter::compressInstructions(const string& instructions) {
 	string result;
 	int cnt = 1;
 	char prv = instructions[0];
@@ -134,13 +140,59 @@ string Painter::drawingInstructions() {
 			}
 
 			result += "\n";
-			
+
 			prv = instructions[i];
 			cnt = 1;
 		}
 	}
 
-	result += "R";
-	
 	return result;
+}
+
+bool Painter::checkValidInstructions(const string& instructions) {
+	cv::Mat retrievedImage(image.rows, image.cols, CV_8U, cv::Scalar(255));
+
+	int i = 0, j = 0;
+	bool pressed = false;
+
+	for (char c : instructions) {
+		if (c == 'P')
+			pressed = true;
+		else if (c == 'R')
+			pressed = false;
+		else if (c == '>')
+			++j;
+		else if (c == '<')
+			--j;
+		else if (c == '^')
+			--i;
+		else if (c == 'v')
+			++i;
+
+		cout << i << ' ' << j << endl;
+		
+		if (pressed) {
+			retrievedImage.at<uchar>(i, j) = (uchar)0;
+		}
+	}
+
+	return compareImages(retrievedImage, image);
+}
+
+bool Painter::compareImages(const cv::Mat& img1, const cv::Mat& img2) {
+	// treat two empty mat as identical
+	if (img1.empty() && img2.empty())
+		return true;
+
+	// if dimensions of two mat is not identical, these two mat is not identical
+	if (img1.cols != img2.cols || img1.rows != img2.rows || img1.dims != img2.dims)
+		return false;
+
+	// Compare every pixel
+	for (int i = 0; i < img1.rows; ++i)
+		for (int j = 0; j < img1.cols; ++j)
+			if (img1.at<bool>(i, j) != img2.at<bool>(i, j))
+				return false;
+
+	return true;
 }

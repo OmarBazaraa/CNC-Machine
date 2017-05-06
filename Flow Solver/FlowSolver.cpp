@@ -153,7 +153,7 @@ void FlowSolver::detectNextLevelButton() {
 	}
 
 	if (dialogLeftBorder == -1 || dialogRightBorder == -1) {
-		return;
+		throw exception("Cannot detect next level button");
 	}
 
 	// Loop to get next level button upper and lower positions
@@ -187,6 +187,10 @@ void FlowSolver::detectNextLevelButton() {
 
 	nextLevelRow = buttonTopBorder + (buttonBottomBorder - buttonTopBorder) / 2;
 	nextLevelCol = dialogLeftBorder + (dialogRightBorder - dialogLeftBorder) / 2;
+
+	if (nextLevelRow == -1 || nextLevelCol == -1) {
+		throw exception("Cannot detect next level button");
+	}
 }
 
 void FlowSolver::initGameData() {
@@ -368,8 +372,7 @@ void FlowSolver::solve() {
 	if (!_solve(r, c, -1, -1, 0)) {
 		// This situation should never happen in case we are running
 		// Flow Game mazes as they are all solvable
-		std::cout << "The given maze is unsolvable" << std::endl;
-		return;
+		throw exception("The given maze is unsolvable");
 	}
 
 	// Loop through each color to get its path

@@ -42,4 +42,11 @@ public:
 	 * Returns the drawing instructions of the given image to be drawn be sent to the Arduino
 	 */
 	string drawingInstructions();
+
+private:
+	string compressInstructions(const string& instructions);
+
+	bool checkValidInstructions(const string& instructions);
+
+	bool compareImages(const cv::Mat& img1, const cv::Mat& img2);
 };
