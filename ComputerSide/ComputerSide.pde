@@ -13,67 +13,76 @@ int userOption = 0;
 boolean isKeyConsumed = false;
 
 void setup() {
+
+  for (int i = 0; i < Serial.list().length; ++i) {
+    System.out.println(i + "." + Serial.list()[i]);
+  }
+
   // Intialize port for Arduino
-  port = new Serial(this, Serial.list()[7], 9600);
+  port = new Serial(this, Serial.list()[4], 9600);
+
+  delay(2000);
 }
 
 // Application main loop function
 void draw() {
 
-  if (cncTask == null || !cncTask.isRunning()) {
-    displayMenuAndGetUserOption();
-  } 
-  // operation is running
-  else {
-    cncTask.executeInstruction();
+  try {
+    if (cncTask == null || !cncTask.isRunning()) {
+      displayMenuAndGetUserOption();
+    } 
+    // operation is running
+    else {
+      cncTask.executeInstruction();
+    }
+  }
+  catch (Exception e) {
+    System.err.println(e.getMessage());
+
+    if (cncTask != null)
+      cncTask = cncTask.getMovePenBackTask();
   }
 }
 
-void displayMenuAndGetUserOption() {
+void displayMenuAndGetUserOption() throws Exception {
+
   // Display options menu for the user (if not already displayed)
   displayUserOptionsMenu();
 
   // Perform user action
-  try {
-    switch (userOption) {
-    case Constants.USER_OPTIONS_FLOW_SOLVER:
-      resetSystemVariables();
-      cncTask = new FlowSolvingTask();
-      cncTask.start();
-      break;
+  switch (userOption) {
+  case Constants.USER_OPTIONS_FLOW_SOLVER:
+    resetSystemVariables();
+    cncTask = new FlowSolvingTask();
+    cncTask.start();
+    break;
 
-    case Constants.USER_OPTIONS_PAPER_PAINT:
-      resetSystemVariables();
-      cncTask = new PaintingTask();
-      cncTask.start();
+  case Constants.USER_OPTIONS_PAPER_PAINT:
+    resetSystemVariables();
+    cncTask = new PaintingTask();
+    cncTask.start();
+    break;
 
-      break;
+  case Constants.USER_OPTIONS_PHONE_PAINT:
+    break;
 
-    case Constants.USER_OPTIONS_PHONE_PAINT:
-      break;
-
-    case Constants.USER_OPTIONS_CALIBRATION:
-      resetSystemVariables();
-      cncTask = new CalibrationTask();
-      cncTask.start();
-
-      break;
-
-    case Constants.USER_OPTIONS_QUIT_SYSTEM:
-      System.out.println("Bye!");
-      exit();
-    }
-  }
-  catch (Exception e) {
-    System.err.println("Sorry");
-    cncTask = null;
+  case Constants.USER_OPTIONS_CALIBRATION:
+    resetSystemVariables();
+    cncTask = new CalibrationTask();
+    cncTask.start();
+    break;
+    
+  case Constants.USER_OPTIONS_QUIT_SYSTEM:
+    System.out.println("Bye!");
+    exit();
   }
 }
+
 // Get user main option input 
 void displayUserOptionsMenu () {
   if (!userOptionsMenuDisplayed) {
     userOption = 0;
-    System.out.println("\n\nEnter a number: ");
+    System.out.println("Enter a number: ");
     System.out.println("[" + Constants.USER_OPTIONS_FLOW_SOLVER + "] : Solve flow free game");
     System.out.println("[" + Constants.USER_OPTIONS_PAPER_PAINT + "] : Paint photo on paper");
     System.out.println("[" + Constants.USER_OPTIONS_PHONE_PAINT + "] : Paint photo on tablet");
@@ -86,6 +95,8 @@ void displayUserOptionsMenu () {
 
 // Catch user input
 void keyPressed() {
+  key = Character.toUpperCase(key);
+  
   if (cncTask != null)
     cncTask.setKeyStatus(key, true); 
 
@@ -93,7 +104,15 @@ void keyPressed() {
     System.out.println("Log :: Terminatting ...  ");
 
     cncTask.stop();
-    cncTask = null;
+    
+    cncTask = cncTask.getMovePenBackTask();
+    try {
+      cncTask.start();
+    }
+    catch (Exception e) {
+      cncTask = null;
+    }
+    
     resetSystemVariables();
   }
 
@@ -107,6 +126,6 @@ void keyReleased() {
 
 // Reset system variables
 void resetSystemVariables() {
-  userOption = 0;
+  // userOption = 0;
   userOptionsMenuDisplayed = false;
 }

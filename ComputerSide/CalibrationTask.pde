@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 class CalibrationTask extends CNCTask {
   int currentKey = -1;
   long lastKeyTimestamp = 0;
-  
+
   public void start() {
     // Send configurations
     sendConfigurations();
@@ -20,21 +20,12 @@ class CalibrationTask extends CNCTask {
 
   public void onStart() {
     // Print game started
-    System.out.println("\n\nStarting Cailbration, use arrows to move robot...\n");
+    System.out.println("Starting Cailbration, use arrows to move robot...");
   }
-
-
-  public void restart() {
-  }
-
-
-  public void onRestart() {
-  }
-
 
   public void stop() {
     // Print game started
-    System.out.println("\n\nCalibraion stopped...\n");
+    System.out.println("Calibraion stopped...");
 
     isRunning = false;
 
@@ -43,12 +34,14 @@ class CalibrationTask extends CNCTask {
 
 
   public void onStop() {
-    System.out.println("\n\nCalibraion stopped...\n");
+    System.out.println("Calibraion stopped...");
   }
 
   public void setKeyStatus(char k, boolean status) {
     if (status && System.currentTimeMillis() - lastKeyTimestamp > 1) { 
       lastKeyTimestamp = System.currentTimeMillis();
+
+      currentKey = k;
 
       if (k == CODED) {
         if (keyCode == RIGHT)
@@ -59,25 +52,17 @@ class CalibrationTask extends CNCTask {
           currentKey = 'v';
         else if (keyCode == DOWN)
           currentKey = '^';
-      } else currentKey = k;
-    } else currentKey = -1;
-     
+      }
+    } else {
+      currentKey = -1;
+    }
   }
   public char getInstruction() {
-    if ( currentKey != -1) return (char) currentKey;
+    if (currentKey != -1) return (char) currentKey;
     return 0;
   }
 
-  protected String getConfigurations() {
-    String configs = "";
-    int count = Constants.CALIBRATION_MODE_STEPS_COUNT; // 4 bytes
-
-    for (int i = 0; i < 4; i++) {
-      char firstChar = (char) count;
-      configs+=firstChar;
-      count = count >> 8;
-    }
-
-    return configs;
+  protected int getConfigurations() {
+    return Constants.CALIBRATION_MODE_STEPS_COUNT; // 4 bytes
   }
 }

@@ -5,15 +5,13 @@ import java.nio.file.Paths;
 class FlowSolvingTask extends CNCTask {
   public boolean screenSpecsRetrieved = false;
 
-  int screenWidth;
-  int screenHeight;
   int screenWDPI;
   int screenHDPI;
-  int gameEndPointRow = 0;
-  int gameEndPointCol = 0;
 
   String instructions;
   int instructionsPointer = 0;
+
+  int rows = 0, cols = 0;
 
   float blockSize;
   int motorStepsCount;
@@ -22,21 +20,21 @@ class FlowSolvingTask extends CNCTask {
 
   public FlowSolvingTask () throws Exception {
     // Get screen specs
-    if (!this.getScreenSpecs()) 
-      throw new Exception("Couldn't get screen specs!");
+    this.getScreenSpecs();
   }
 
-  public void start() {
-
+  public void start() throws Exception {
+    System.out.println("Starting flow solver...");
+    
     // Pull screenshot
-    if (!this.pullScreenShot()) return;
+    Utilities.captureScreenShot();
 
     // Execute flow solver algorithm which generates instructions.txt file
-    if (!this.executeSolveAlgorithm()) return;
+    this.executeSolveAlgorithm();
 
     // Calculate grid block size in CMs, store in the file in the new units
     // Calculate path end grid point, store in variables to send later to flow solver
-    if (!this.parseInstructionsFile(Constants.MODE_FLOW_SOLVER_SOLVE)) return;
+    this.parseGameInstructionsFile();
 
 
     // Send configurations
@@ -52,187 +50,173 @@ class FlowSolvingTask extends CNCTask {
 
   public void onStart() {
     // Print game started
-    System.out.println("\n\nStarting Flow Solver...\n");
+    System.out.println("Flow Solving started...");
   }
 
 
-  public void restart() {
+  public void restart() throws Exception {
     System.out.println("Log :: Moving to next level ...  ");
 
-    delay(1500);
+    delay(3000);
 
     // Get screenshot
-    this.pullScreenShot();
+    Utilities.captureScreenShot();
 
     // Execute C++ to get next level button position
     try {
       Utilities.executeSystemCommand(new String[]{
         Constants.PATH_FLOW_SOLVER, 
-        Integer.toString(this.gameEndPointRow), 
-        Integer.toString(this.gameEndPointCol), 
+        Constants.PATH_FLOW_IMAGE_FILE, 
+        Constants.PATH_FLOW_INSTRUCTIONS_FILE, 
+        Integer.toString(this.rows), 
+        Integer.toString(this.cols), 
         Constants.MODE_FLOW_SOLVER_NEXT_LEVEL
         });
+    }
+    catch (Exception e) {
+      throw new Exception ("Next level button cannot be located!");
+    }
+    // Get coordinates from file
+    this.parseNextLevelInstructionsFile();
 
-      // Get coordinates from file
-      if (!this.parseInstructionsFile(Constants.MODE_FLOW_SOLVER_NEXT_LEVEL)) return;
-
+    try {
       // Send click command via adb
       Utilities.executeSystemCommand(new String[] {
         Constants.PATH_ADB, "shell", "input", "tap", 
         this.nextLevelButtonX, 
         this.nextLevelButtonY});
     }
-    catch (Throwable th) {
-      th.printStackTrace();
-      return;
+    catch (Exception e) {
+      throw new Exception ("Moving to next level failed!");
     }
+
     isRunning = true;
 
     delay(1500);
 
+    port.clear();
+
     start();
   }
 
-
-  public void onRestart() {
-  }
-
-
   public void stop() {
     // Print game started
-    System.out.println("\n\nStopping Flow Solver...\n");
+    System.out.println("Stopping Flow Solver...");
 
     isRunning = false;
-    
+
     onStop();
   }
 
 
   public void onStop() {
-    System.out.println("\n\nFlow Solver stopped...\n");
+    System.out.println("Flow Solver stopped...");
   }
 
 
-  public char getInstruction() {
+  protected MovePenTask getMovePenBackTask() {
+    return new MovePenTask(rows, cols, motorStepsCount);
+  }
+
+  public char getInstruction() throws Exception {
     // Return 0 if insturctions finished
     if (instructionsPointer == instructions.length()) {
       restart(); 
       return 0;
     }
 
+    char instruction = instructions.charAt(instructionsPointer++);
+
+    // Update cols, rows
+    if (instruction == '^')
+      rows--;
+    else if (instruction == 'v')
+      rows++;
+    else if (instruction == '>')
+      cols++;
+    else if (instruction == '<')
+      cols--;
+
     // Move pointer to next
-    return instructions.charAt(instructionsPointer++);
+    return instruction;
   }
 
-  protected String getConfigurations() {
-    String configs = "";
-    int count = this.motorStepsCount; // 4 bytes
-
-    for (int i = 0; i < 4; i++) {
-      char firstChar = (char) count;
-      configs+=firstChar;
-      count = count >> 8;
-    }
-
-    return configs;
+  protected int getConfigurations() {
+    return this.motorStepsCount; // 4 bytes
   }
 
-  private boolean parseInstructionsFile(String mode) {
-    String instructionFileContents = Utilities.getFileContents(Constants.PATH_INSTRUCTIONS_FILE).trim();
-    if (instructionFileContents.length() == 0) {
-      System.err.println("Error :: Please make sure that instructions file exists\n");
-      return false;
-    }
+  private String[] parseInstructionsFile() throws Exception {
+    String instructionFileContents = Utilities.getFileContents(Constants.PATH_FLOW_INSTRUCTIONS_FILE).trim();
+
     System.out.println("Log :: Instructions file read -> " + instructionFileContents);
 
-    String[] instructionFileContentsArray = instructionFileContents.split("\\s+", -1);
-
-    // Solve mode 
-    if (mode.equals(Constants.MODE_FLOW_SOLVER_SOLVE)) {
-      // Get first 2 numbers (grid block width, height)
-      int gridBlockWidth = Integer.parseInt(instructionFileContentsArray[0]);
-      int gridBlockHeight = Integer.parseInt(instructionFileContentsArray[1]);
-      this.instructions = instructionFileContentsArray[2];
-      this.instructionsPointer = 0;
-
-      System.out.println("Log :: Instructions file parsed -> " + gridBlockWidth + " " + this.instructions);
-
-      // Will save only grid width block to insructions file in CM (height ~= width)
-
-      // Calculate grid block size in CMs
-      this.blockSize = gridBlockWidth;
-      this.blockSize = ( this.blockSize / this.screenWDPI ) * 2.54; // convert to cm
-      this.motorStepsCount = (int) (this.blockSize * Constants.SCREEN_RATIO); // remove fraction part
-
-      System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
-
-      // Calculate end path point on grid
-      this.calculateGameEndPoint(this.instructions);
-    } 
-    // Move to next level mode
-    else if (mode.equals(Constants.MODE_FLOW_SOLVER_NEXT_LEVEL)) {
-      this.nextLevelButtonY = instructionFileContentsArray[0];
-      this.nextLevelButtonX = instructionFileContentsArray[1];
-    }
-    return true;
+    return instructionFileContents.split("\\s+", -1);
   }
 
-  private void calculateGameEndPoint(String instructions) {
-    instructions = instructions.replace("P", "").replace("R", "");
+  private void parseNextLevelInstructionsFile() throws Exception {
+    String[] instructionFileContentsArray = parseInstructionsFile();
 
-    this.gameEndPointRow += (instructions.length() - instructions.replace("v", "").length());
-    this.gameEndPointRow -= (instructions.length() - instructions.replace("^", "").length());
-    this.gameEndPointCol += (instructions.length() - instructions.replace(">", "").length());
-    this.gameEndPointCol -= (instructions.length() - instructions.replace("<", "").length());
+    this.nextLevelButtonY = instructionFileContentsArray[0];
+    this.nextLevelButtonX = instructionFileContentsArray[1];
 
-    System.out.println("Log :: End point (row,col) -> " + gameEndPointRow + ","  + gameEndPointCol);
+    if (this.nextLevelButtonY.equals("-1")) 
+      throw new Exception("Next level button cannot be located!");
   }
 
-  private boolean executeSolveAlgorithm() {
-    try
-    {   
-      String output = Utilities.executeSystemCommand(new String[]{Constants.PATH_FLOW_SOLVER, 
-        Integer.toString(this.gameEndPointRow), Integer.toString(this.gameEndPointCol)});
+  private void parseGameInstructionsFile() throws Exception {
+    String[] instructionFileContentsArray = parseInstructionsFile();
 
-      System.out.println("Log :: Game Statistics " + output );
-    } 
-    catch (Throwable t)
-    {
-      t.printStackTrace();
-      return false;
-    }
+    if (instructionFileContentsArray[0].equals("-1")) 
+      throw new Exception("Maze is unsolveable!");
+
+    // Get first 2 numbers (grid block width, height)
+    int gridBlockWidth = Integer.parseInt(instructionFileContentsArray[0]);
+    int gridBlockHeight = Integer.parseInt(instructionFileContentsArray[1]);
+    this.instructions = instructionFileContentsArray[2] + Constants.SERIAL_DONE;
+    this.instructionsPointer = 0;
+
+    System.out.println("Log :: Instructions file parsed -> " + gridBlockWidth + " " + this.instructions);
+
+    // Will save only grid width block to insructions file in CM (height ~= width)
+
+    // Calculate grid block size in CMs
+    this.blockSize = gridBlockWidth;
+    System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
+    this.blockSize = ( this.blockSize / this.screenWDPI ) * 2.54; // convert to cm
+    System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
+    this.motorStepsCount = (int) (this.blockSize * Constants.SCREEN_RATIO); // remove fraction part
+
+    System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
+    System.out.println("Log :: Motor steps count calculated -> " + motorStepsCount);
+  }
+
+  private void executeSolveAlgorithm() throws Exception {
+
+    String output = Utilities.executeSystemCommand(new String[]{
+      Constants.PATH_FLOW_SOLVER, 
+      Constants.PATH_FLOW_IMAGE_FILE, 
+      Constants.PATH_FLOW_INSTRUCTIONS_FILE, 
+      Integer.toString(this.rows), 
+      Integer.toString(this.cols)
+      });
+
+    System.out.println("Log :: Game Statistics " + output );
+
     System.out.println("Log :: Game solved and instructions file generated");
-    return true;
   }
 
-  private boolean pullScreenShot() {
-    boolean success = Utilities.captureScreenShot();
-    if (success)
-      System.out.println("Log :: Screenshot captured");
-
-    return success;
-  }
-
-
-  private boolean getScreenSpecs() {
+  private void getScreenSpecs() throws Exception {
     String screenSpecs = Utilities.getScreenSize().trim();
-    if (screenSpecs.length() == 0) {
-      System.err.println("Error :: Please make sure that your device is connected\n");
-      return false;
-    }
 
     // Format output size and fill member variables
     this.storeScreenSpecs(screenSpecs);
 
     System.out.println("Log :: Screen size stored");
-    return true;
   }
 
   private void storeScreenSpecs(String screenSpecs) {
     String[] screenSpecsArray = screenSpecs.split("\\s+", -1);
-    this.screenWidth = Integer.parseInt(screenSpecsArray[0]);
-    this.screenHeight = Integer.parseInt(screenSpecsArray[1]);
-    this.screenWDPI = (int) Double.parseDouble(screenSpecsArray[2]);
-    this.screenHDPI = (int) Double.parseDouble(screenSpecsArray[3]);
+    this.screenWDPI = (int) Double.parseDouble(screenSpecsArray[0]);
+    this.screenHDPI = (int) Double.parseDouble(screenSpecsArray[1]);
   }
 }

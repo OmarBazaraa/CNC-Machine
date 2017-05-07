@@ -20,81 +20,100 @@ static class Utilities {
 
     // Get output
     BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
     String line = "";
+
     while ((line = reader.readLine())!= null) {
       output.append(line);
     }
+
     return output.toString();
   }
 
 
-  public static boolean captureScreenShot() {
-    try
-    {    
+  public static void captureScreenShot() throws Exception {
+    try {
       // Execute adb command to capture screen and save on device memory
       executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "screencap", "-p", "/sdcard/game.png"});
+        "shell", "screencap", "-p", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE});
 
       // Execute adb command to pull the screenshot
       executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "pull", "/sdcard/game.png", Constants.PATH_SCRIPTS_DIR});
+        "pull", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE, Constants.PATH_IMAGES_DIR});
 
       // Execute adb command to remove the screenshot from device memory
       executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "rm", "/sdcard/game.png"});
-
-      // =======================================================
+        "shell", "rm", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE});
     } 
-    catch (Throwable t)
-    {
-      t.printStackTrace();
-      return false;
+    catch (Exception e) {
+      throw new Exception ("Screenshot cannot be taken!");
     }
-
-    return true;
   }
 
-  public static String getScreenSize() {
+  public static void captureCameraShot() throws Exception {
+    try {
+
+      // Execute adb command to capture camera shot
+      executeSystemCommand(new String[]{Constants.PATH_ADB, 
+        "shell", "am", "start", "-a", "android.media.action.STILL_IMAGE_CAMERA", "&& sleep 1", 
+        "&& input keyevent KEYCODE_FOCUS", "&& sleep 2", "&& input keyevent 27", "&& sleep 4", 
+        "&& cd /storage/3D13-1817/DCIM/Camera/ && IFS=$'\n' && output=(`ls -l`) && lines=${#output[@]} &&  file=${output[$((lines-1))]: -23} && cp $file /sdcard/painter_img.jpg"
+        });
+
+      // Execute adb command to pull camera shot
+      executeSystemCommand(new String[]{Constants.PATH_ADB, 
+        "pull", "/sdcard/" + Constants.FILE_NAME_PAINTER_IMAGE, Constants.PATH_IMAGES_DIR});
+
+      // Execute adb command to remove the picture from device memory
+      executeSystemCommand(new String[]{Constants.PATH_ADB, 
+        "shell", "rm", "/sdcard/" + Constants.FILE_NAME_PAINTER_IMAGE});
+    } 
+    catch (Exception e) {
+      throw new Exception ("Screenshot cannot be taken!");
+    }
+  }
+
+  public static String getScreenSize() throws Exception {
     String output = "";
 
-    try
-    {    
-      // Execute adb command to get SCREEN PIXELS
-      String screenPixelsSize = executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "wm", "size"});
+    // =======================================================
 
-      // Check if empty output
-      if (screenPixelsSize.trim().length() == 0)
-        return "";
+    // Execute adb command to get SCREEN DPI
+    String screenDPI = executeSystemCommand(new String[]{Constants.PATH_ADB, 
+      "shell", "dumpsys", "display", "|", "grep", "mBaseDisplayInfo"});
 
-      // Format output and attach to output
-      output += screenPixelsSize.toString().replace("Physical size: ", "").replace("x", " ");
+    // Check if empty output
+    if (screenDPI.trim().length() == 0)
+      throw new Exception("Couldn't get screen specs!");
 
-      // =======================================================
+    // Format output and attach to output
+    int dpiIdx = screenDPI.indexOf("dpi");
 
-      // Execute adb command to get SCREEN DPI
-      String screenDPI = executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "dumpsys", "display", "|", "grep", "mBaseDisplayInfo"});
-
-      // Check if empty output
-      if (screenDPI.trim().length() == 0)
-        return "";
-
-      // Format output and attach to output
-      screenDPI = screenDPI.substring(screenDPI.indexOf("(") + 1, screenDPI.indexOf(")")).replace(" x ", " ");
-      output += (" " + screenDPI);
-
-      // =======================================================
-    } 
-    catch (Throwable t)
-    {
-      t.printStackTrace();
+    // Get comma idx
+    int separatorIdx = 0;
+    for (int i = dpiIdx; i >= 0; --i) {
+      if (screenDPI.charAt(i) == ',' || screenDPI.charAt(i) == '(') {
+        separatorIdx = i;
+        break;
+      }
     }
+
+    screenDPI = screenDPI.substring(separatorIdx + 1, dpiIdx - 1)
+      .replace(")", "")
+      .replace("(", "")
+      .replace(" ", "")
+      .replace("x", " ");
+
+    output += (screenDPI);
+    // =======================================================
+
     return output.toString();
   }
 
-  public static String getFileContents(String path) {
+  public static String getFileContents(String path) throws Exception {
+
     StringBuffer output = new StringBuffer();
+
     try
     {
       BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -108,9 +127,7 @@ static class Utilities {
     }
     catch (Exception e)
     {
-      System.err.format("Exception occurred trying to read '%s'.", path);
-      e.printStackTrace();
-      return null;
+      throw new Exception ("Instructions file cannot be opened!");
     }
   }
   public static void deleteFile(String path) {

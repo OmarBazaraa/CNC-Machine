@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	try {
-		Painter painter(IMAGE_FILE, scaleRatio);
+		Painter painter(imagePath, scaleRatio);
 		imwrite(BI_IMAGE_FILE, painter.image);
 		string instructions = painter.drawingInstructions();
 		//cout << "Instructions: " << endl << instructions << endl;

@@ -7,14 +7,19 @@ class PaintingTask extends CNCTask {
   String instructions;
   int instructionsPointer = 0;
 
-  public void start() {
+  int rows=0, cols=0;
+
+  public void start() throws Exception {
+    // Utilities.captureCameraShot();
 
     // Execute flow solver algorithm which generates instructions.txt file
-    if (!this.executePaintingAlgorithm()) return;
+    if (!this.executePaintingAlgorithm()) 
+      throw new Exception("Painting algorithm failed to execute!");
 
     // Calculate grid block size in CMs, store in the file in the new units
     // Calculate path end grid point, store in variables to send later to flow solver
-    if (!this.parseInstructionsFile()) return;
+    if (!this.parseInstructionsFile()) 
+      throw new Exception("Parsing instructions files failed!");
 
 
     // Send configurations
@@ -30,30 +35,20 @@ class PaintingTask extends CNCTask {
 
   public void onStart() {
     // Print game started
-    System.out.println("\n\nStarting Painting...\n");
+    System.out.println("Starting Painting...");
   }
-
-  // ToDo
-  public void restart() {
-  }
-
-
-  public void onRestart() {
-  }
-
 
   public void stop() {
     // Print game started
-    System.out.println("\n\nStopping Painting...\n");
+    System.out.println("Stopping Painting...");
 
     isRunning = false;
 
     onStop();
   }
 
-
   public void onStop() {
-    System.out.println("\n\nPainting stopped...\n");
+    System.out.println("\nPainting stopped...");
   }
 
 
@@ -63,32 +58,33 @@ class PaintingTask extends CNCTask {
       stop();
       return 0;
     }
+    char instruction = instructions.charAt(instructionsPointer++);
+
+    // Update cols, rows
+    if (instruction == '^')
+      rows--;
+    else if (instruction == 'v')
+      rows++;
+    else if (instruction == '>')
+      cols++;
+    else if (instruction == '<')
+      cols--;
 
     // Move pointer to next
-    return instructions.charAt(instructionsPointer++);
+    return instruction;
   }
 
-  protected String getConfigurations() {
-    String configs = "";
-    int count = Constants.PAINTING_MODE_STEPS_COUNT; // 4 bytes
-
-    // ToDo
-    for (int i = 0; i < 4; i++) {
-      char firstChar = (char) count;
-      configs+=firstChar;
-      count = count >> 8;
-    }
-
-    return configs;
+  protected MovePenTask getMovePenBackTask() {
+    return new MovePenTask(rows, cols, Constants.PAINTING_MODE_STEPS_COUNT);
   }
 
-  private boolean parseInstructionsFile() {
+  protected int getConfigurations() {
+    return Constants.PAINTING_MODE_STEPS_COUNT; // 4 bytes
+  }
+
+  private boolean parseInstructionsFile() throws Exception {
     this.instructions = Utilities.getFileContents(Constants.PATH_PAINT_INSTRUCTIONS_FILE).trim();
 
-    if (this.instructions.length() == 0) {
-      System.err.println("Error :: Please make sure that instructions file exists\n");
-      return false;
-    }
     System.out.println("Log :: Instructions file read -> " + this.instructions);
 
     this.instructionsPointer = 0;
@@ -99,7 +95,13 @@ class PaintingTask extends CNCTask {
   private boolean executePaintingAlgorithm() {
     try
     {   
-      Utilities.executeSystemCommand(new String[]{Constants.PATH_PAINTER});
+      String out = Utilities.executeSystemCommand(new String[]{
+        Constants.PATH_PAINTER, 
+        Constants.PATH_IMAGES_DIR + "painter.jpg",
+        Constants.PATH_PAINT_INSTRUCTIONS_FILE,
+        "1.0"
+        });
+        System.err.println(out);
     } 
     catch (Throwable t)
     {

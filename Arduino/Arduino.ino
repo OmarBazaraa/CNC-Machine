@@ -5,9 +5,11 @@ const long DIR_PIN_X = 17;
 const long STEP_PIN_Y = 14;
 const long DIR_PIN_Y = 15;
 const long STEPPER_MODE_PIN = 18;
+const long BUZZER_PIN = 19;
 
 // Motor variables
 Servo servoZ;
+Servo buzzer;
 long motorStepsCount = 0;
 
 void setup() {
@@ -19,8 +21,8 @@ void setup() {
   pinMode(DIR_PIN_X, OUTPUT);
   pinMode(STEP_PIN_Y, OUTPUT);
   pinMode(DIR_PIN_Y, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
   pinMode(STEPPER_MODE_PIN, OUTPUT);
-
   // Setup servo motor
   servoZ.attach(9);
   servoZ.write(90); // Set servo to mid-polong
@@ -28,9 +30,15 @@ void setup() {
 
   // Setup stepper motor to full step mode
   digitalWrite(STEPPER_MODE_PIN, HIGH);
+
+  // Flush serial buffer 
+  while(Serial.available() > 0) {
+    Serial.read();
+  }
 }
 
 void loop() {
+
   if (Serial.available() <= 0)
     return;
 
@@ -47,11 +55,11 @@ void loop() {
 }
 
 // ==========================================
-//  CNC COMMANDS FUNCTIONS
+// CNC COMMANDS FUNCTIONS
 // ==========================================
 
 void executeCommand(int command) {
-  
+
   if (command == '^')     // Move X Backwards
     moveStepper(STEP_PIN_X, DIR_PIN_X, 1);
   else if (command == 'v')  // Move X Forward
@@ -64,13 +72,19 @@ void executeCommand(int command) {
     moveZ(1);
   else if (command == 'R')  // Release Pen
     moveZ(0);
+  else if(command == 'E')
+    beep(120, 3, 'E');
+  else if(command == 'B')
+    beep(55, 1, 'B');
+  else if(command == 'D')
+    beep(33, 2, 'B');
 
   //Send Acknowldegement
   Serial.write('A');
 }
 
 // ==========================================
-//  CONFIGURATIONS FUNCTIONS
+// CONFIGURATIONS FUNCTIONS
 // ==========================================
 
 void readMotorStepsCount() {
@@ -87,10 +101,13 @@ void readMotorStepsCount() {
 
     bytesReceived++;
   }
+  
+  // Beep sound
+  beep(55, 1, 'B');
 }
 
 // ==========================================
-//  MOTOR FUNCTIONS
+// MOTOR FUNCTIONS
 // ==========================================
 
 void moveZ(long d) {
@@ -101,10 +118,24 @@ void moveZ(long d) {
 void moveStepper(long stepPin, long directionPin, long dir) {
   digitalWrite(directionPin, dir);
 
-  for (long i = 0; i < motorStepsCount; i++) {
+  for (long i = 0; i < motorStepsCount; ++i) {
     digitalWrite(stepPin, HIGH);
     delayMicroseconds(40);
     digitalWrite(stepPin, LOW);
     delayMicroseconds(40);
+  }  
+}
+
+// ==========================================
+// SOUND FUNCTIONS
+// ==========================================
+
+void beep(int delayMS, int numberOfBuzzers, char buzzType){
+  for (int i = 0; i < numberOfBuzzers; ++i){
+    digitalWrite(BUZZER_PIN,HIGH);
+    delay(delayMS);
+    digitalWrite(BUZZER_PIN,LOW);
+    delay(delayMS);
   }
 }
+
