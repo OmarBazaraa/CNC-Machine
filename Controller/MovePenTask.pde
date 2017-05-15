@@ -13,64 +13,47 @@ class MovePenTask extends CNCTask {
     this.rows = rows;   
 
     this.motorStepsCount = steps;
-
-    this.instructionDone = true;
   }
 
-  public void start() {
-
-    port.clear();
-    
+  public void start() {    
     // Send configurations
-    sendConfigurations();
-
-    // Set flag
-    isRunning = true;
+    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
 
     // Call onStart
-    onStart();
-  }
-
-  public void onStart() {
-    // Print game started
     System.out.println("Moving pen back...");
   }
 
   public void stop() {
+    super.stop();
+
     // Print game started
     System.out.println("Moving pen stopped...");
-
-    isRunning = false;
-
-    onStop();
   }
 
-  protected int getConfigurations() {
-    return this.motorStepsCount; // 4 bytes
-  }
-
-  public void onStop() {
-    System.out.println("Moving pen stopped...");
-  }
-
-  public char getInstruction() {
-
+  protected void executeInstruction() throws Exception {
+    char instruction = 0;
+    
     if (!isReleaseInstructionSent) { 
       isReleaseInstructionSent = true; 
-      return 'R';
+      instruction = 'R';
     } else if (this.cols < 0) {
       this.cols++;
-      return '>';
+      instruction = '>';
     } else if (this.cols > 0) {
       this.cols--;
-      return '<';
+      instruction = '<';
     } else if (this.rows < 0) {
       this.rows++;
-      return 'v';
+      instruction = 'v';
     } else if (this.rows > 0) {
       this.rows--;
-      return '^';
+      instruction = '^';
+    } 
+
+    sendInstruction(instruction);
+
+    if (Math.abs(this.cols) + Math.abs(this.rows) == 0) {
+      stop();
     }
-    return 0;
   }
 }

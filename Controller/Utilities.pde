@@ -30,20 +30,25 @@ static class Utilities {
     return output.toString();
   }
 
-
   public static void captureScreenShot() throws Exception {
     try {
       // Execute adb command to capture screen and save on device memory
-      executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "screencap", "-p", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE});
+      executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "shell", "screencap", "-p", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE
+      });
 
       // Execute adb command to pull the screenshot
-      executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "pull", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE, Constants.PATH_IMAGES_DIR});
+      executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "pull", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE, Constants.PATH_IMAGES_DIR
+      });
 
       // Execute adb command to remove the screenshot from device memory
-      executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "rm", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE});
+      executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "shell", "rm", "/sdcard/" + Constants.FILE_NAME_FLOW_IMAGE
+      });
     } 
     catch (Exception e) {
       throw new Exception ("Screenshot cannot be taken!");
@@ -52,7 +57,6 @@ static class Utilities {
 
   public static void captureCameraShot() throws Exception {
     try {
-
       // Execute adb command to capture camera shot
       executeSystemCommand(new String[]{Constants.PATH_ADB, 
         "shell", "am", "start", "-a", "android.media.action.STILL_IMAGE_CAMERA", "&& sleep 1", 
@@ -61,30 +65,33 @@ static class Utilities {
         });
 
       // Execute adb command to pull camera shot
-      executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "pull", "/sdcard/" + Constants.FILE_NAME_PAINTER_IMAGE, Constants.PATH_IMAGES_DIR});
+      executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "pull", "/sdcard/" + Constants.FILE_NAME_PAINTER_IMAGE, Constants.PATH_IMAGES_DIR
+      });
 
       // Execute adb command to remove the picture from device memory
-      executeSystemCommand(new String[]{Constants.PATH_ADB, 
-        "shell", "rm", "/sdcard/" + Constants.FILE_NAME_PAINTER_IMAGE});
+      executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "shell", "rm", "/sdcard/" + Constants.FILE_NAME_PAINTER_IMAGE
+      });
     } 
     catch (Exception e) {
       throw new Exception ("Screenshot cannot be taken!");
     }
   }
-
+  
   public static String getScreenSize() throws Exception {
-    String output = "";
-
-    // =======================================================
-
     // Execute adb command to get SCREEN DPI
-    String screenDPI = executeSystemCommand(new String[]{Constants.PATH_ADB, 
-      "shell", "dumpsys", "display", "|", "grep", "mBaseDisplayInfo"});
+    String screenDPI = executeSystemCommand(new String[]{
+      Constants.PATH_ADB, 
+      "shell", "dumpsys", "display", "|", "grep", "mBaseDisplayInfo"
+    });
 
     // Check if empty output
-    if (screenDPI.trim().length() == 0)
+    if (screenDPI.trim().length() == 0) {
       throw new Exception("Couldn't get screen specs!");
+    }
 
     // Format output and attach to output
     int dpiIdx = screenDPI.indexOf("dpi");
@@ -104,34 +111,31 @@ static class Utilities {
       .replace(" ", "")
       .replace("x", " ");
 
-    output += (screenDPI);
-    // =======================================================
-
-    return output.toString();
+    return screenDPI;
   }
 
   public static String getFileContents(String path) throws Exception {
-
     StringBuffer output = new StringBuffer();
 
-    try
-    {
+    try {
       BufferedReader reader = new BufferedReader(new FileReader(path));
       String line;
-      while ((line = reader.readLine()) != null)
-      {
+
+      while ((line = reader.readLine()) != null) {
         output.append(line);
       }
+
       reader.close();
       return output.toString();
     }
-    catch (Exception e)
-    {
+    catch (Exception e) {
       throw new Exception ("Instructions file cannot be opened!");
     }
   }
+
   public static void deleteFile(String path) {
     File f = new File(path);
+
     if (f.exists()) {
       f.delete();
     }

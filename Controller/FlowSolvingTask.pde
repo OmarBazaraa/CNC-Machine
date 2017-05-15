@@ -1,9 +1,13 @@
-import java.nio.file.Files;
+import java.nio.file.Files; //<>// //<>//
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class FlowSolvingTask extends CNCTask {
   public boolean screenSpecsRetrieved = false;
+  public boolean deviceDisconnected = false;
+  public boolean gameActivityNotShown = false;
+  public boolean phoneNotInPosition = false;
+  public boolean motorsNotConnected = false;
 
   int screenWDPI;
   int screenHDPI;
@@ -25,7 +29,7 @@ class FlowSolvingTask extends CNCTask {
 
   public void start() throws Exception {
     System.out.println("Starting flow solver...");
-    
+
     // Pull screenshot
     Utilities.captureScreenShot();
 
@@ -36,23 +40,9 @@ class FlowSolvingTask extends CNCTask {
     // Calculate path end grid point, store in variables to send later to flow solver
     this.parseGameInstructionsFile();
 
-
     // Send configurations
-    sendConfigurations();
-
-    // Set flag
-    isRunning = true;
-
-    // Call onStart
-    onStart();
+    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
   }
-
-
-  public void onStart() {
-    // Print game started
-    System.out.println("Flow Solving started...");
-  }
-
 
   public void restart() throws Exception {
     System.out.println("Log :: Moving to next level ...  ");
@@ -71,61 +61,114 @@ class FlowSolvingTask extends CNCTask {
         Integer.toString(this.rows), 
         Integer.toString(this.cols), 
         Constants.MODE_FLOW_SOLVER_NEXT_LEVEL
-        });
+      });
     }
     catch (Exception e) {
       throw new Exception ("Next level button cannot be located!");
     }
+
     // Get coordinates from file
     this.parseNextLevelInstructionsFile();
 
+    // Send click command via adb
     try {
-      // Send click command via adb
       Utilities.executeSystemCommand(new String[] {
         Constants.PATH_ADB, "shell", "input", "tap", 
         this.nextLevelButtonX, 
-        this.nextLevelButtonY});
+        this.nextLevelButtonY
+      });
     }
     catch (Exception e) {
       throw new Exception ("Moving to next level failed!");
     }
 
-    isRunning = true;
-
     delay(1500);
-
-    port.clear();
 
     start();
   }
 
   public void stop() {
+    super.stop();
+
     // Print game started
     System.out.println("Stopping Flow Solver...");
-
-    isRunning = false;
-
-    onStop();
   }
+  
+  protected void handleFeedback(int signal) {
+    super.handleFeedback(signal);
+    
+    switch (signal) {
+      case Constants.SERIAL_PHONE_POSITION_ERROR:
+      errorHandler(Constants.ERROR_PHONE_OFF_POSITION, "Phone is off-position!", false);
+      break;
 
-
-  public void onStop() {
-    System.out.println("Flow Solver stopped...");
+      case Constants.SERIAL_PHONE_POSITION_ERROR_FIXED:
+      errorHandler(Constants.ERROR_PHONE_OFF_POSITION, "Phone has been detected!", true);
+      break;
+    }
   }
+  
+  protected void scanEnvironment() {
+    super.scanEnvironment();
 
+    // Phone is connected
+    try {      
+      String checkPhoneConnectionOutput = Utilities.executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "devices"
+      });
+
+      if (checkPhoneConnectionOutput.trim().equals("List of devices attached")) {
+        errorHandler(Constants.ERROR_PHONE_DISCONNECTION, "Please connect the phone cable", false);
+        return;
+      } 
+      else {
+        errorHandler(Constants.ERROR_PHONE_DISCONNECTION, "Phone cable is connected", true);
+      }
+    } 
+    catch(Exception e) {
+      errorHandler(Constants.ERROR_PHONE_DISCONNECTION, "Please connect the phone", false);
+      return;
+    }
+
+
+    // Game activitiy is visible
+    try {
+      String checkGameActivityOutput = Utilities.executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "shell", "dumpsys", "window", "windows", "|", 
+        "grep", "-E", "'mCurrentFocus|mFocusedApp'"
+      });
+
+      if (checkGameActivityOutput.indexOf("com.bigduckgames.flow/com.bigduckgames.flow.flow") == -1) {
+        errorHandler(Constants.ERROR_MISSING_GAME_ACTIVITY, "Please return to game screen!", false);
+      } 
+      else {
+        errorHandler(Constants.ERROR_MISSING_GAME_ACTIVITY, "Game screen detected", true);
+      }
+    }
+    catch (Exception e) {
+      errorHandler(Constants.ERROR_MISSING_GAME_ACTIVITY, "Please return to game screen!", false);
+    }
+  }
 
   protected MovePenTask getMovePenBackTask() {
-    return new MovePenTask(rows, cols, motorStepsCount);
+    MovePenTask movePenTask = new MovePenTask(rows, cols, motorStepsCount);
+    movePenTask.setListener(this.cncListener);
+
+    return movePenTask;
   }
 
-  public char getInstruction() throws Exception {
-    // Return 0 if insturctions finished
+  protected void executeInstruction() throws Exception {
+    // Return if insturctions finished
     if (instructionsPointer == instructions.length()) {
-      restart(); 
-      return 0;
+      restart();
+      return;
     }
 
     char instruction = instructions.charAt(instructionsPointer++);
+
+    sendInstruction(instruction);
 
     // Update cols, rows
     if (instruction == '^')
@@ -136,13 +179,6 @@ class FlowSolvingTask extends CNCTask {
       cols++;
     else if (instruction == '<')
       cols--;
-
-    // Move pointer to next
-    return instruction;
-  }
-
-  protected int getConfigurations() {
-    return this.motorStepsCount; // 4 bytes
   }
 
   private String[] parseInstructionsFile() throws Exception {
@@ -159,20 +195,22 @@ class FlowSolvingTask extends CNCTask {
     this.nextLevelButtonY = instructionFileContentsArray[0];
     this.nextLevelButtonX = instructionFileContentsArray[1];
 
-    if (this.nextLevelButtonY.equals("-1")) 
+    if (this.nextLevelButtonY.equals("-1")) {
       throw new Exception("Next level button cannot be located!");
+    }
   }
 
   private void parseGameInstructionsFile() throws Exception {
     String[] instructionFileContentsArray = parseInstructionsFile();
 
-    if (instructionFileContentsArray[0].equals("-1")) 
+    if (instructionFileContentsArray[0].equals("-1")) {
       throw new Exception("Maze is unsolveable!");
+    }
 
     // Get first 2 numbers (grid block width, height)
     int gridBlockWidth = Integer.parseInt(instructionFileContentsArray[0]);
     int gridBlockHeight = Integer.parseInt(instructionFileContentsArray[1]);
-    this.instructions = instructionFileContentsArray[2] + Constants.SERIAL_DONE;
+    this.instructions = instructionFileContentsArray[2];
     this.instructionsPointer = 0;
 
     System.out.println("Log :: Instructions file parsed -> " + gridBlockWidth + " " + this.instructions);
@@ -191,17 +229,15 @@ class FlowSolvingTask extends CNCTask {
   }
 
   private void executeSolveAlgorithm() throws Exception {
-
     String output = Utilities.executeSystemCommand(new String[]{
       Constants.PATH_FLOW_SOLVER, 
       Constants.PATH_FLOW_IMAGE_FILE, 
       Constants.PATH_FLOW_INSTRUCTIONS_FILE, 
       Integer.toString(this.rows), 
       Integer.toString(this.cols)
-      });
+    });
 
     System.out.println("Log :: Game Statistics " + output );
-
     System.out.println("Log :: Game solved and instructions file generated");
   }
 
