@@ -26,12 +26,12 @@ const char SERIAL_CNC_OUT_RANGE_ERROR_FIXED = 'M';
 //
 // Interrupts pins
 //
-const int PHONE_POSITION_SENSOR = 2;
-const int POWER_SUPPLY_SENSOR = 3;
-const int CNC_RANGE_UP = x;
-const int CNC_RANGE_DOWN = x;
-const int CNC_RANGE_LEFT = x;
-const int CNC_RANGE_RIGHT = x;
+const int PHONE_POSITION_SENSOR = 7;
+const int POWER_SUPPLY_SENSOR = 5;
+const int CNC_RANGE_UP = 10;
+const int CNC_RANGE_DOWN = 11;
+const int CNC_RANGE_LEFT = 12;
+const int CNC_RANGE_RIGHT = 13;
 
 //
 // Buzzer pin
