@@ -102,31 +102,24 @@ public class CNCTask {
   }
 
   protected void scanEnvironment(boolean sendSignal) {
-    // Arduino is connected
-    if (Arrays.asList(Serial.list()).contains(arduinoPortName)) {
-      if (errorsList.contains(Constants.ERROR_ARDUINO_DISCONNECTION)) {
-        if (cncListener != null) {
-          cncListener.onArduinoConnected();
-        }
-        
-        sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
-      }
+    boolean arduinoConnected = Arrays.asList(Serial.list()).contains(arduinoPortName);
 
-      errorHandler(
-        Constants.ERROR_ARDUINO_DISCONNECTION, 
-        Constants.MSGS_FIXED_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
-        true,
-        sendSignal
-      );
-    } 
+    if (errorsList.contains(code) != arduinoConnected)
+      return;
+
+    // Arduino is connected
+    if (arduinoConnected) {
+      System.out.println(Constants.MSGS_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION]);
+      errorsList.remove(Constants.ERROR_ARDUINO_DISCONNECTION);
+
+      if (cncListener != null) {
+        cncListener.onArduinoConnected();
+      }
+    }
     // Arduino disconnected!
     else {
-      errorHandler(
-        Constants.ERROR_ARDUINO_DISCONNECTION, 
-        Constants.MSGS_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
-        false,
-        sendSignal
-      );
+      System.err.println(Constants.MSGS_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION]);
+      errorsList.add(Constants.ERROR_ARDUINO_DISCONNECTION);
     }
   }
 
