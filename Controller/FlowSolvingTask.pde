@@ -1,4 +1,4 @@
-import java.nio.file.Files;
+import java.nio.file.Files; //<>//
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -23,7 +23,7 @@ class FlowSolvingTask extends CNCTask {
   String nextLevelButtonY = "0";
 
   public FlowSolvingTask () {
-    
+
   }
 
   protected void setupTask() throws Exception {
@@ -124,17 +124,27 @@ class FlowSolvingTask extends CNCTask {
     
     switch (signal) {
       case Constants.SERIAL_PHONE_POSITION_ERROR:
-      errorHandler(Constants.ERROR_PHONE_OFF_POSITION, "Phone is off-position!", false);
+      errorHandler(
+        Constants.ERROR_PHONE_OFF_POSITION,
+        Constants.MSGS_ERRORS[Constants.ERROR_PHONE_OFF_POSITION],
+        false,
+        true
+        );
       break;
 
       case Constants.SERIAL_PHONE_POSITION_ERROR_FIXED:
-      errorHandler(Constants.ERROR_PHONE_OFF_POSITION, "Phone has been detected!", true);
+      errorHandler(
+        Constants.ERROR_PHONE_OFF_POSITION,
+        Constants.MSGS_FIXED_ERRORS[Constants.ERROR_PHONE_OFF_POSITION],
+        false,
+        true
+        );
       break;
     }
   }
   
-  protected void scanEnvironment() {
-    super.scanEnvironment();
+  protected void scanEnvironment(boolean sendSignal) {
+    super.scanEnvironment(sendSignal);
 
     // Phone is connected
     try {      
@@ -144,15 +154,30 @@ class FlowSolvingTask extends CNCTask {
       });
 
       if (checkPhoneConnectionOutput.trim().equals("List of devices attached")) {
-        errorHandler(Constants.ERROR_PHONE_DISCONNECTION, "Please connect the phone cable", false);
+        errorHandler(
+          Constants.ERROR_PHONE_DISCONNECTION,
+          Constants.MSGS_ERRORS[Constants.ERROR_PHONE_DISCONNECTION],
+          false,
+          sendSignal
+          );
         return;
       } 
       else {
-        errorHandler(Constants.ERROR_PHONE_DISCONNECTION, "Phone cable is connected", true);
+        errorHandler(
+          Constants.ERROR_PHONE_DISCONNECTION,
+          Constants.MSGS_FIXED_ERRORS[Constants.ERROR_PHONE_DISCONNECTION],
+          true,
+          sendSignal
+          );
       }
     } 
     catch(Exception e) {
-      errorHandler(Constants.ERROR_PHONE_DISCONNECTION, "Please connect the phone", false);
+      errorHandler(
+        Constants.ERROR_PHONE_DISCONNECTION,
+        Constants.MSGS_ERRORS[Constants.ERROR_PHONE_DISCONNECTION],
+        false,
+        sendSignal
+        );
       return;
     }
 
@@ -166,63 +191,78 @@ class FlowSolvingTask extends CNCTask {
       });
 
       if (checkGameActivityOutput.indexOf("com.bigduckgames.flow/com.bigduckgames.flow.flow") == -1) {
-        errorHandler(Constants.ERROR_MISSING_GAME_ACTIVITY, "Please return to game screen!", false);
+        errorHandler(
+          Constants.ERROR_MISSING_GAME_ACTIVITY,
+          Constants.MSGS_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY],
+          false,
+          sendSignal
+          );
       } 
       else {
-        errorHandler(Constants.ERROR_MISSING_GAME_ACTIVITY, "Game screen detected", true);
-      }
-    }
-    catch (Exception e) {
-      errorHandler(Constants.ERROR_MISSING_GAME_ACTIVITY, "Please return to game screen!", false);
-    }
+       errorHandler(
+        Constants.ERROR_MISSING_GAME_ACTIVITY,
+        Constants.MSGS_FIXED_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY],
+        true,
+        sendSignal
+        );
+     }
+   }
+   catch (Exception e) {
+    errorHandler(
+      Constants.ERROR_MISSING_GAME_ACTIVITY,
+      Constants.MSGS_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY],
+      false,
+      sendSignal
+      );
   }
+}
 
-  public MovePenTask getMovePenBackTask() {
-    MovePenTask movePenTask = new MovePenTask(rows, cols, motorStepsCount);
-    movePenTask.setListener(this.cncListener);
+public MovePenTask getMovePenBackTask() {
+  MovePenTask movePenTask = new MovePenTask(rows, cols, motorStepsCount);
+  movePenTask.setListener(this.cncListener);
 
-    return movePenTask;
+  return movePenTask;
+}
+
+private String[] parseInstructionsFile() throws Exception {
+  String instructionFileContents = Utilities.getFileContents(Constants.PATH_FLOW_INSTRUCTIONS_FILE).trim();
+
+  System.out.println("Log :: Instructions file read -> " + instructionFileContents);
+
+  return instructionFileContents.split("\\s+", -1);
+}
+
+private void parseNextLevelInstructionsFile() throws Exception {
+  String[] instructionFileContentsArray = parseInstructionsFile();
+
+  this.nextLevelButtonY = instructionFileContentsArray[0];
+  this.nextLevelButtonX = instructionFileContentsArray[1];
+
+  if (this.nextLevelButtonY.equals("-1")) {
+    throw new Exception("Next level button cannot be located!");
   }
+}
 
-  private String[] parseInstructionsFile() throws Exception {
-    String instructionFileContents = Utilities.getFileContents(Constants.PATH_FLOW_INSTRUCTIONS_FILE).trim();
+private void parseGameInstructionsFile() throws Exception {
+  String[] instructionFileContentsArray = parseInstructionsFile();
 
-    System.out.println("Log :: Instructions file read -> " + instructionFileContents);
-
-    return instructionFileContents.split("\\s+", -1);
+  if (instructionFileContentsArray[0].equals("-1")) {
+    throw new Exception("Maze is unsolveable!");
   }
-
-  private void parseNextLevelInstructionsFile() throws Exception {
-    String[] instructionFileContentsArray = parseInstructionsFile();
-
-    this.nextLevelButtonY = instructionFileContentsArray[0];
-    this.nextLevelButtonX = instructionFileContentsArray[1];
-
-    if (this.nextLevelButtonY.equals("-1")) {
-      throw new Exception("Next level button cannot be located!");
-    }
-  }
-
-  private void parseGameInstructionsFile() throws Exception {
-    String[] instructionFileContentsArray = parseInstructionsFile();
-
-    if (instructionFileContentsArray[0].equals("-1")) {
-      throw new Exception("Maze is unsolveable!");
-    }
 
     // Get first 2 numbers (grid block width, height)
-    int gridBlockWidth = Integer.parseInt(instructionFileContentsArray[0]);
-    int gridBlockHeight = Integer.parseInt(instructionFileContentsArray[1]);
-    this.instructions = instructionFileContentsArray[2];
-    this.instructionsPointer = 0;
+  int gridBlockWidth = Integer.parseInt(instructionFileContentsArray[0]);
+  int gridBlockHeight = Integer.parseInt(instructionFileContentsArray[1]);
+  this.instructions = instructionFileContentsArray[2];
+  this.instructionsPointer = 0;
 
-    System.out.println("Log :: Instructions file parsed -> " + gridBlockWidth + " " + this.instructions);
+  System.out.println("Log :: Instructions file parsed -> " + gridBlockWidth + " " + this.instructions);
 
     // Will save only grid width block to insructions file in CM (height ~= width)
 
     // Calculate grid block size in CMs
-    this.blockSize = gridBlockWidth;
-    System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
+  this.blockSize = gridBlockWidth;
+  System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
     this.blockSize = ( this.blockSize / this.screenWDPI ) * 2.54; // convert to cm
     System.out.println("Log :: Block size calculated -> " + blockSize + " micro cm");
     this.motorStepsCount = (int) (this.blockSize * Constants.SCREEN_RATIO); // remove fraction part

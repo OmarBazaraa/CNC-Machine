@@ -68,9 +68,31 @@ static class Constants {
   //
   // ERRORS CODES
   //
-  static final int ERROR_ARDUINO_DISCONNECTION = 1;
-  static final int ERROR_PHONE_DISCONNECTION = 2;
-  static final int ERROR_MISSING_GAME_ACTIVITY = 3;
-  static final int ERROR_PHONE_OFF_POSITION = 4;
-  static final int ERROR_POWER_LOST = 5;
+  static final int ERROR_ARDUINO_DISCONNECTION = 0;
+  static final int ERROR_PHONE_DISCONNECTION = 1;
+  static final int ERROR_MISSING_GAME_ACTIVITY = 2;
+  static final int ERROR_PHONE_OFF_POSITION = 3;
+  static final int ERROR_POWER_LOST = 4;
+
+  //
+  // ERRORS MSGS
+  //
+  static final String[] MSGS_ERRORS = new String[]{
+    "Please re-connect the Arduino cable!",
+    "Please connect the phone cable",
+    "Please return to game screen!",
+    "Phone is off-position!",
+    "We lost power :("
+  };
+
+  //
+  // FIXED ERRORS MSGS
+  //
+  static final String[] MSGS_FIXED_ERRORS = new String[]{
+    "Arduino is back :D",
+    "Phone cable is connected",
+    "Game screen detected",
+    "Phone has been detected!",
+    "Power is back :D"
+  };
 }

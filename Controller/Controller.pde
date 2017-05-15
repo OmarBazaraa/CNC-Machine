@@ -24,7 +24,8 @@ CNCListener cncListener = new CNCListener() {
   }
 
   public void onError(String errorMessage) {
-    System.err.println(errorMessage);
+    if(errorMessage != null)
+      System.err.println(errorMessage);
 
     cncTask = cncTask.getMovePenBackTask();
 
@@ -49,7 +50,7 @@ void setup() {
   //   for (int i = 0; i < Serial.list().length; ++i) {
   //     System.out.println(i + "." + Serial.list()[i]);
   //   }
-    
+  
   //   portNumber = scanner.nextInt();
 
   // } while (portNumber >= Serial.list().length || portNumber < 0);
@@ -85,26 +86,26 @@ void getUserOption() {
 
   // Perform user action
   switch (userSelectedOption) {
-  case Constants.USER_OPTIONS_FLOW_SOLVER:
+    case Constants.USER_OPTIONS_FLOW_SOLVER:
     cncTask = new FlowSolvingTask();
     break;
 
-  case Constants.USER_OPTIONS_PAPER_PAINT:
+    case Constants.USER_OPTIONS_PAPER_PAINT:
     cncTask = new PaintingTask();
     break;
 
-  case Constants.USER_OPTIONS_PHONE_PAINT:
+    case Constants.USER_OPTIONS_PHONE_PAINT:
     break;
 
-  case Constants.USER_OPTIONS_PIANO:
+    case Constants.USER_OPTIONS_PIANO:
     cncTask = new PianoTask();
     break;
 
-  case Constants.USER_OPTIONS_CALIBRATION:
+    case Constants.USER_OPTIONS_CALIBRATION:
     cncTask = new CalibrationTask();
     break;
 
-  case Constants.USER_OPTIONS_QUIT_SYSTEM:
+    case Constants.USER_OPTIONS_QUIT_SYSTEM:
     System.out.println("Bye!");
     exit();
   }

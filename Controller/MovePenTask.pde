@@ -30,7 +30,7 @@ class MovePenTask extends CNCTask {
     System.out.println("Moving pen stopped...");
   }
 
-  protected void executeInstruction() throws Exception {
+  protected void executeInstruction() {
     char instruction = 0;
     
     if (!isReleaseInstructionSent) { 

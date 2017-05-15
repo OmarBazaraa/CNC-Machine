@@ -7,6 +7,8 @@ public class CNCTask {
 
   public void start() {
     try {
+      scanEnvironment(false);
+      
       setupTask();
     }
     catch (Exception e) {
@@ -17,11 +19,9 @@ public class CNCTask {
   }
 
   protected void setupTask() throws Exception {
-    
   }
 
   public void restart()  throws Exception {
-
   }
 
   public void stop() {
@@ -31,18 +31,18 @@ public class CNCTask {
   public void execute() {
     receiveFeedback();
     check();
-    
+
     if (errorsList.size() > 0 || !acknowledgementReceived) {
       return;
     }
-    
+
     if (isTerminating) {
       if (cncListener != null) {
         cncListener.onStop();
       }
       return;
     }
-    
+
     try {
       executeInstruction();
     }
@@ -53,7 +53,8 @@ public class CNCTask {
     }
   }
 
-  protected void executeInstruction() throws Exception {}
+  protected void executeInstruction() throws Exception {
+  }
 
   protected void receiveFeedback() {
     if (port.available() <= 0) return;
@@ -71,56 +72,77 @@ public class CNCTask {
   protected void handleFeedback(int signal) {
     switch (signal) {
       case Constants.SERIAL_POWER_SUPPLY_ERROR:
-      errorHandler(Constants.ERROR_POWER_LOST, "We lost power :(", false);
+      errorHandler(
+        Constants.ERROR_POWER_LOST, 
+        Constants.MSGS_ERRORS[Constants.ERROR_POWER_LOST], 
+        false,
+        true
+        );
       break;
 
       case Constants.SERIAL_POWER_SUPPLY_ERROR_FIXED:
-      errorHandler(Constants.ERROR_POWER_LOST, "Power is back :D", true);
+      errorHandler(
+        Constants.ERROR_POWER_LOST, 
+        Constants.MSGS_FIXED_ERRORS[Constants.ERROR_POWER_LOST], 
+        true,
+        true
+        );
       break;
     }
   }
 
   protected void check() {
     if (System.currentTimeMillis() - lastCheckTimeStamp > 100) {
-      scanEnvironment();
+      scanEnvironment(true);
     }
   }
 
-  protected void scanEnvironment() {
+  protected void scanEnvironment(boolean sendSignal) {
     // Arduino is connected
     if (Arrays.asList(Serial.list()).contains(arduinoPortName)) {
-      errorHandler(Constants.ERROR_ARDUINO_DISCONNECTION, "Arduino is back :D", true);
+      errorHandler(
+        Constants.ERROR_ARDUINO_DISCONNECTION, 
+        Constants.MSGS_FIXED_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
+        true,
+        sendSignal
+        );
     } 
     // Arduino disconnected!
     else {
-      errorHandler(Constants.ERROR_ARDUINO_DISCONNECTION, "Please re-connect the Arduino cable!", false);
+      errorHandler(
+        Constants.ERROR_ARDUINO_DISCONNECTION, 
+        Constants.MSGS_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
+        false,
+        sendSignal
+        );
     }
   }
 
-  protected void errorHandler(Integer code, String message, boolean isSolved) {
+  protected void errorHandler(Integer code, String message, boolean isSolved, boolean sendSignal) {
     if (errorsList.contains(code) == isSolved) {
-      System.out.println(message);
-
-      if (isSolved)
+      if (isSolved) {
+        System.out.println(message);
         errorsList.remove(code);
-      else
+      } else {
+        System.err.println(message);
         errorsList.add(code);
+      }
+
+      if(!sendSignal) return;
 
       if (errorsList.size() == 0 && isSolved) {
         sendInstruction(Constants.SERIAL_CONTINUE_SIGNAL);
-      }
-      else if (errorsList.size() == 1 && !isSolved) {
+      } else if (errorsList.size() == 1 && !isSolved) {
         sendInstruction(Constants.SERIAL_STOP_SIGNAL);
       }
     }
   }
-  
+
   public void setListener(CNCListener cncListener) {
     this.cncListener = cncListener;
   }
 
   public void setKeyStatus(char k, boolean status) {
-
   }
 
   public MovePenTask getMovePenBackTask() {
