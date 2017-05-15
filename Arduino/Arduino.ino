@@ -110,22 +110,17 @@ void setup() {
   pinMode(DIR_PIN_Y, OUTPUT);
   pinMode(STEPPER_MODE_PIN, OUTPUT);
 
-  // Attach phone position sensor as intrrupt
-  // attachInterrupt(digitalPinToInterrupt(PHONE_POSITION_SENSOR_PIN), phoneSensorListener, CHANGE);
-  // attachInterrupt(digitalPinToInterrupt(POWER_SUPPLY_SENSOR_PIN), powerSupplyListener, CHANGE);
-
   // Setup servo motor
   servoZ.attach(9);
-  servoZ.write(90); // Set servo to mid-point
   moveServo(0);
 
   // Setup stepper motor to full step mode
   digitalWrite(STEPPER_MODE_PIN, HIGH);
 }
 
-void loop() {  
+void loop() {
   checkInterrupts();
-  beep();  
+  beep();
   moveStepper();
 
   // Check if serial available
@@ -156,10 +151,10 @@ void executeCommand(int command) {
   //
   // Motor commands
   //
-  
+
   if (errorExists)
     return;
-    
+
   // Set up moter step count
   if (command == SERIAL_MOTOR_STEPS_COUNT)
     readMotorStepsCount();
@@ -213,11 +208,10 @@ void checkInterrupts() {
   int newRead = digitalRead(PHONE_POSITION_SENSOR_PIN);
   if (newRead != phonePositionFlag) {
     if (newRead == HIGH)
-      Serial.write(SERIAL_PHONE_POSITION_ERROR);
-    else
       Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
+    else
+      Serial.write(SERIAL_PHONE_POSITION_ERROR);
 
-    delay(40); // TODO: to be checked
     phonePositionFlag = newRead;
   }
 
@@ -229,8 +223,7 @@ void checkInterrupts() {
     else
       Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
 
-    delay(40); // TODO: to be checked
-    phonePositionFlag = newRead;
+    powerSupplyFlag = newRead;
   }
 
   // Out of range up
@@ -241,7 +234,7 @@ void checkInterrupts() {
     else
       Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    phonePositionFlag = newRead;
+    cncRangeUpFlag = newRead;
   }
 
   // Out of range down
@@ -252,7 +245,7 @@ void checkInterrupts() {
     else
       Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    phonePositionFlag = newRead;
+    cncRangeDownFlag = newRead;
   }
 
   // Out of range left
@@ -263,7 +256,7 @@ void checkInterrupts() {
     else
       Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    phonePositionFlag = newRead;
+    cncRangeLeftFlag = newRead;
   }
 
   // Out of range right
@@ -274,7 +267,7 @@ void checkInterrupts() {
     else
       Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    phonePositionFlag = newRead;
+    cncRangeRightFlag = newRead;
   }
 }
 
@@ -308,17 +301,25 @@ void moveStepper() {
 
   // Checking left and right direction ranges
   if (motorStepPin == STEP_PIN_Y) {
-    if (motorDirection && cncRangeRightFlag == HIGH)
+    if (motorDirection && cncRangeRightFlag == HIGH) {
+      Serial.write(SERIAL_ACKNOWLEDGMENT);
       return;
-    if (!motorDirection && cncRangeLeftFlag == HIGH)
+    }
+    if (!motorDirection && cncRangeLeftFlag == HIGH) {
+      Serial.write(SERIAL_ACKNOWLEDGMENT);
       return;
+    }
   }
   // Checking up and down direction ranges
   else if (motorStepPin == STEP_PIN_X) {
-    if (motorDirection && cncRangeUpFlag == HIGH)
+    if (motorDirection && cncRangeUpFlag == HIGH) {
+      Serial.write(SERIAL_ACKNOWLEDGMENT);
       return;
-    if (!motorDirection && cncRangeDownFlag == HIGH)
+    }
+    if (!motorDirection && cncRangeDownFlag == HIGH) {
+      Serial.write(SERIAL_ACKNOWLEDGMENT);
       return;
+    }
   }
 
   digitalWrite(motorStepPin, HIGH);

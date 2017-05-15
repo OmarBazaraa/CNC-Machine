@@ -70,7 +70,7 @@ public class CNCTask {
       return;
     } 
 
-    // handleFeedback(signal);
+    handleFeedback(signal);
   }  
 
   protected void handleFeedback(int signal) {
@@ -104,7 +104,7 @@ public class CNCTask {
   protected void scanEnvironment(boolean sendSignal) {
     boolean arduinoConnected = Arrays.asList(Serial.list()).contains(arduinoPortName);
 
-    if (errorsList.contains(code) != arduinoConnected)
+    if (errorsList.contains(Constants.ERROR_ARDUINO_DISCONNECTION) != arduinoConnected)
       return;
 
     // Arduino is connected
