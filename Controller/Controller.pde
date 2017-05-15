@@ -6,6 +6,8 @@ import java.util.Scanner;
 // ===========================
 int userOption = 0;
 
+int serialDevicesListSize = 0;
+int portNumber = -1;
 String arduinoPortName = "";
 Serial port = null;
 CNCTask cncTask;
@@ -36,37 +38,24 @@ CNCListener cncListener = new CNCListener() {
       cncTask.start();
     }
   }
+
+  public void onArduinoConnected() {
+    connectArduino();
+  }
 };
 
-void setup() {
-  System.out.println("Please enter Arduino port number:");
+void connectArduino() {
+  port.stop();
+  delay(3000);
 
-  // Get port number from user
-  Scanner scanner = new Scanner(System.in);
-  int portNumber = 5;
-
-  // do {
-  //   // Display all ports
-  //   for (int i = 0; i < Serial.list().length; ++i) {
-  //     System.out.println(i + "." + Serial.list()[i]);
-  //   }
-  
-  //   portNumber = scanner.nextInt();
-
-  // } while (portNumber >= Serial.list().length || portNumber < 0);
-  
-  arduinoPortName = Serial.list()[portNumber];
-  
-  System.out.println("Arduino port: " + arduinoPortName  + " is selected!");
-  
-  // Conenct to port
   port = new Serial(this, Serial.list()[portNumber], 9600);
   port.clear();
 
   delay(3000);
+}
 
-  scanner.close();
-  
+void setup() {
+  getArduinoPort();
   displayUserOptionsMenu();
 }
 
@@ -146,5 +135,42 @@ void keyPressed() {
 void keyReleased() {
   if (cncTask != null) {
     cncTask.setKeyStatus(key, false);
+  }
+}
+
+void getArduinoPort() {
+  System.out.println("Please enter Arduino port number:");
+
+  // Get port number from user
+  // Scanner scanner = new Scanner(System.in);
+  portNumber = 5;
+
+  // do {
+  //   // Display all ports
+  //   for (int i = 0; i < Serial.list().length; ++i) {
+  //     System.out.println(i + "." + Serial.list()[i]);
+  //   }
+  
+  //   portNumber = scanner.nextInt();
+
+  // } while (portNumber >= Serial.list().length || portNumber < 0);
+
+  // scanner.close();  
+  
+  arduinoPortName = Serial.list()[portNumber];
+  
+  System.out.println("Arduino port: " + arduinoPortName  + " is selected!");
+  
+  serialDevicesListSize = Serial.list().length;
+
+  // Conenct to port
+  try {
+    port = new Serial(this, Serial.list()[portNumber], 9600);
+    port.clear();
+
+    delay(3000);
+  } 
+  catch (Exception e) {
+    System.err.println(e.getMessage());
   }
 }

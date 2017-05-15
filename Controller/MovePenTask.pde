@@ -3,7 +3,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class MovePenTask extends CNCTask {
-  int motorStepsCount;
   int rows, cols;
 
   boolean isReleaseInstructionSent = false;
@@ -52,7 +51,7 @@ class MovePenTask extends CNCTask {
 
     sendInstruction(instruction);
 
-    if (Math.abs(this.cols) + Math.abs(this.rows) == 0) {
+    if (this.cols == 0 && this.rows == 0) {
       stop();
     }
   }

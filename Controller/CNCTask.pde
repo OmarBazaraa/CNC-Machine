@@ -4,6 +4,7 @@ public class CNCTask {
   protected long lastCheckTimeStamp = 0; 
   protected CNCListener cncListener = null;
   protected ArrayList<Integer> errorsList = new ArrayList<Integer>();
+  protected int motorStepsCount = 0;
 
   public void start() {
     try {
@@ -11,7 +12,7 @@ public class CNCTask {
       
       if (errorsList.size() > 0)
         throw new Exception();
-      
+
       setupTask();
     }
     catch (Exception e) {
@@ -103,6 +104,13 @@ public class CNCTask {
   protected void scanEnvironment(boolean sendSignal) {
     // Arduino is connected
     if (Arrays.asList(Serial.list()).contains(arduinoPortName)) {
+      if (errorsList.contains(Constants.ERROR_ARDUINO_DISCONNECTION)) {
+        if (cncListener != null)
+          cncListener.onArduinoConnected();
+        
+        sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
+      }
+
       errorHandler(
         Constants.ERROR_ARDUINO_DISCONNECTION, 
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
@@ -131,12 +139,13 @@ public class CNCTask {
         errorsList.add(code);
       }
 
-      if(!sendSignal) return;
+      if (!sendSignal) 
+        return;
 
       if (errorsList.size() == 0 && isSolved) {
-        sendInstruction(Constants.SERIAL_CONTINUE_SIGNAL);
+        port.write(Constants.SERIAL_CONTINUE_SIGNAL);
       } else if (errorsList.size() == 1 && !isSolved) {
-        sendInstruction(Constants.SERIAL_STOP_SIGNAL);
+        port.write(Constants.SERIAL_STOP_SIGNAL);
       }
     }
   }

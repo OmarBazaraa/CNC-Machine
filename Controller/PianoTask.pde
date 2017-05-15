@@ -7,8 +7,10 @@ class PianoTask extends CNCTask {
   long lastKeyTimestamp = 0;
 
   public void start() {
+    this.motorStepsCount = 0;
+
     // Send configurations
-    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, 0);
+    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
 
     System.out.println("Starting Piano, use keyboard to play the piano...");
   }

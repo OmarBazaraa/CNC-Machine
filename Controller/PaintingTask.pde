@@ -10,6 +10,8 @@ class PaintingTask extends CNCTask {
   int rows = 0, cols = 0;
 
   protected void setupTask() throws Exception {
+    this.motorStepsCount = Constants.PAINTING_MODE_STEPS_COUNT;
+    
     // Utilities.captureCameraShot();
 
     // Execute flow solver algorithm which generates instructions.txt file
@@ -24,7 +26,7 @@ class PaintingTask extends CNCTask {
     }
 
     // Send configurations
-    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, Constants.PAINTING_MODE_STEPS_COUNT);
+    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
 
     // Call onStart
     System.out.println("Starting Painting...");

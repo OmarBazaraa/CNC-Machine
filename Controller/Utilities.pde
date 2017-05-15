@@ -163,6 +163,11 @@ static class Utilities {
         "grep", "-E", "'mCurrentFocus|mFocusedApp'"
       });
 
+      // Just work around when phone is disconnected
+      if (checkGameActivityOutput.isEmpty()) {
+        return true;
+      }
+
       return (checkGameActivityOutput.indexOf(activity) != -1);
     }
     catch (Exception e) {

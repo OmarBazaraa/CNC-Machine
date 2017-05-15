@@ -7,8 +7,10 @@ class CalibrationTask extends CNCTask {
   long lastKeyTimestamp = 0;
 
   protected void setupTask() {
+    this.motorStepsCount = Constants.CALIBRATION_MODE_STEPS_COUNT;
+    
     // Send configurations
-    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, Constants.CALIBRATION_MODE_STEPS_COUNT);
+    sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
 
     System.out.println("Starting Cailbration, use arrows to move robot...");
   }

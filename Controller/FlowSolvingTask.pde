@@ -18,7 +18,6 @@ class FlowSolvingTask extends CNCTask {
   int rows = 0, cols = 0;
 
   float blockSize;
-  int motorStepsCount;
   String nextLevelButtonX = "0";
   String nextLevelButtonY = "0";
 
