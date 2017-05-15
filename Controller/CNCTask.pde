@@ -9,6 +9,9 @@ public class CNCTask {
     try {
       scanEnvironment(false);
       
+      if (errorsList.size() > 0)
+        throw new Exception();
+      
       setupTask();
     }
     catch (Exception e) {
