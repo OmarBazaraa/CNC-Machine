@@ -1,4 +1,4 @@
-import java.nio.file.Files; //<>// //<>//
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -20,9 +20,6 @@ class FlowSolvingTask extends CNCTask {
   float blockSize;
   String nextLevelButtonX = "0";
   String nextLevelButtonY = "0";
-
-  public FlowSolvingTask () {
-  }
 
   protected void setupTask() throws Exception {
     System.out.println("Starting flow solver...");
@@ -127,7 +124,7 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_ERRORS[Constants.ERROR_PHONE_OFF_POSITION], 
         false, 
         true
-        );
+      );
       break;
 
       case Constants.SERIAL_PHONE_POSITION_ERROR_FIXED:
@@ -136,7 +133,15 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_PHONE_OFF_POSITION], 
         false, 
         true
-        );
+      );
+      break;
+
+      case Constants.SERIAL_CNC_OUT_RANGE_ERROR:
+      
+      if (cncListener != null) {
+        cncListener.onError(Constants.MSGS_FIXED_ERRORS[Constants.ERROR_CNC_OUT_RANGE]);
+      }
+
       break;
     }
   }
@@ -151,14 +156,15 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_PHONE_DISCONNECTION], 
         true, 
         sendSignal
-        );
-    } else {
+      );
+    }
+    else {
       errorHandler(
         Constants.ERROR_PHONE_DISCONNECTION, 
         Constants.MSGS_ERRORS[Constants.ERROR_PHONE_DISCONNECTION], 
         false, 
         sendSignal
-        );
+      );
       return;
     }
 
@@ -169,14 +175,15 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY], 
         true, 
         sendSignal
-        );
-    } else {
+      );
+    }
+    else {
       errorHandler(
         Constants.ERROR_MISSING_GAME_ACTIVITY, 
         Constants.MSGS_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY], 
         false, 
         sendSignal
-        );
+      );
     }
   }
 

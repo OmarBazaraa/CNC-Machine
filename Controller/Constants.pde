@@ -58,12 +58,13 @@ static class Constants {
   static final char SERIAL_PHONE_POSITION_ERROR_FIXED = 'N';
   static final char SERIAL_POWER_SUPPLY_ERROR = 'S';
   static final char SERIAL_POWER_SUPPLY_ERROR_FIXED = 'F';
+  static final char SERIAL_CNC_OUT_RANGE_ERROR = 'R';
 
   //
   // FLOW-SOLVER SCRIPT MODES
   //
-  static final String MODE_FLOW_SOLVER_SOLVE = "0"; // Solve
-  static final String MODE_FLOW_SOLVER_NEXT_LEVEL = "1"; // Next level
+  static final String MODE_FLOW_SOLVER_SOLVE = "0";       // Solve
+  static final String MODE_FLOW_SOLVER_NEXT_LEVEL = "1";  // Next level
   
   //
   // ERRORS CODES
@@ -73,6 +74,7 @@ static class Constants {
   static final int ERROR_MISSING_GAME_ACTIVITY = 2;
   static final int ERROR_PHONE_OFF_POSITION = 3;
   static final int ERROR_POWER_LOST = 4;
+  static final int ERROR_CNC_OUT_RANGE = 5;
 
   //
   // ERRORS MSGS
@@ -82,7 +84,8 @@ static class Constants {
     "Please connect the phone cable",
     "Please return to game screen!",
     "Phone is off-position!",
-    "We lost power :("
+    "We lost power :(",
+    "CNC is out of range"
   };
 
   //
@@ -93,6 +96,7 @@ static class Constants {
     "Phone cable is connected",
     "Game screen detected",
     "Phone has been detected!",
-    "Power is back :D"
+    "Power is back :D",
+    "CNC back to range :D"
   };
 }

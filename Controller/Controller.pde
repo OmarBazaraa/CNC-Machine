@@ -40,19 +40,9 @@ CNCListener cncListener = new CNCListener() {
   }
 
   public void onArduinoConnected() {
-    connectArduino();
+    reconnectArduino();
   }
 };
-
-void connectArduino() {
-  port.stop();
-  delay(3000);
-
-  port = new Serial(this, Serial.list()[portNumber], 9600);
-  port.clear();
-
-  delay(3000);
-}
 
 void setup() {
   getArduinoPort();
@@ -173,4 +163,14 @@ void getArduinoPort() {
   catch (Exception e) {
     System.err.println(e.getMessage());
   }
+}
+
+void reconnectArduino() {
+  port.stop();
+  delay(3000);
+
+  port = new Serial(this, Serial.list()[portNumber], 9600);
+  port.clear();
+
+  delay(3000);
 }

@@ -20,12 +20,19 @@ const char SERIAL_PHONE_POSITION_ERROR = 'P';
 const char SERIAL_PHONE_POSITION_ERROR_FIXED = 'N';
 const char SERIAL_POWER_SUPPLY_ERROR = 'S';
 const char SERIAL_POWER_SUPPLY_ERROR_FIXED = 'F';
+const char SERIAL_CNC_OUT_RANGE_ERROR = 'R';
+const char SERIAL_CNC_OUT_RANGE_ERROR_FIXED = 'M';
 
 //
 // Interrupts pins
 //
 const int PHONE_POSITION_SENSOR = 2;
 const int POWER_SUPPLY_SENSOR = 3;
+// TODO: get pin numbers
+const int CNC_RANGE_UP = x;
+const int CNC_RANGE_DOWN = x;
+const int CNC_RANGE_LEFT = x;
+const int CNC_RANGE_RIGHT = x;
 
 //
 // Buzzer pin
@@ -63,6 +70,16 @@ int beepSignal = HIGH;
 boolean isBuzzerBeeping = false;
 
 //
+// Interrupt flags
+//
+int phonePositionFlag = HIGH;
+int powerSupplyFlag = HIGH;
+int cncRangeUpFlag = LOW;
+int cncRangeDownFlag = LOW;
+int cncRangeLeftFlag = LOW;
+int cncRangeRightFlag = LOW;
+
+//
 // Error variables
 //
 boolean errorExists = false;
@@ -95,8 +112,8 @@ void setup() {
   pinMode(STEPPER_MODE_PIN, OUTPUT);
 
   // Attach phone position sensor as intrrupt
-  attachInterrupt(digitalPinToInterrupt(PHONE_POSITION_SENSOR), phoneSensorListener, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(POWER_SUPPLY_SENSOR), powerSupplyListener, CHANGE);
+  // attachInterrupt(digitalPinToInterrupt(PHONE_POSITION_SENSOR), phoneSensorListener, CHANGE);
+  // attachInterrupt(digitalPinToInterrupt(POWER_SUPPLY_SENSOR), powerSupplyListener, CHANGE);
 
   // Setup servo motor
   servoZ.attach(9);
@@ -108,6 +125,7 @@ void setup() {
 }
 
 void loop() {  
+  checkInterrupts();
   beep();  
   moveStepper();
 
@@ -191,6 +209,76 @@ void continueExecution() {
   initBuzzer(55, 2);
 }
 
+void checkInterrupts() {
+  // Check phone in position
+  int newRead = digitalRead(PHONE_POSITION_SENSOR);
+  if (newRead != phonePositionFlag) {
+    if (newRead == HIGH)
+      Serial.write(SERIAL_PHONE_POSITION_ERROR);
+    else
+      Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
+
+    delay(40); // TODO: to be checked
+    phonePositionFlag = newRead;
+  }
+
+  // Check power supply
+  newRead = digitalRead(POWER_SUPPLY_SENSOR);
+  if (newRead != powerSupplyFlag) {
+    if (newRead == HIGH)
+      Serial.write(SERIAL_POWER_SUPPLY_ERROR);
+    else
+      Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
+
+    delay(40); // TODO: to be checked
+    phonePositionFlag = newRead;
+  }
+
+  // Out of range up
+  newRead = digitalRead(CNC_RANGE_UP);
+  if (newRead != cncRangeUpFlag) {
+    if (newRead == HIGH)
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+    else
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+
+    phonePositionFlag = newRead;
+  }
+
+  // Out of range down
+  newRead = digitalRead(CNC_RANGE_DOWN);
+  if (newRead != cncRangeDownFlag) {
+    if (newRead == HIGH)
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+    else
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+
+    phonePositionFlag = newRead;
+  }
+
+  // Out of range left
+  newRead = digitalRead(CNC_RANGE_LEFT);
+  if (newRead != cncRangeLeftFlag) {
+    if (newRead == HIGH)
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+    else
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+
+    phonePositionFlag = newRead;
+  }
+
+  // Out of range right
+  newRead = digitalRead(CNC_RANGE_RIGHT);
+  if (newRead != cncRangeRightFlag) {
+    if (newRead == HIGH)
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+    else
+      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+
+    phonePositionFlag = newRead;
+  }
+}
+
 // ==========================================
 // MOTOR FUNCTIONS
 // ==========================================
@@ -219,6 +307,21 @@ void moveStepper() {
     return;
   }
 
+  // Checking left and right direction ranges
+  if (motorStepPin == STEP_PIN_Y) {
+    if (motorDirection && cncRangeRightFlag == HIGH)
+      return;
+    if (!motorDirection && cncRangeLeftFlag == HIGH)
+      return;
+  }
+  // Checking up and down direction ranges
+  else if (motorStepPin == STEP_PIN_X) {
+    if (motorDirection && cncRangeUpFlag == HIGH)
+      return;
+    if (!motorDirection && cncRangeDownFlag == HIGH)
+      return;
+  }
+
   digitalWrite(motorStepPin, HIGH);
   delayMicroseconds(40);
   digitalWrite(motorStepPin, LOW);
@@ -236,6 +339,7 @@ void moveStepper() {
 
 void moveServo(boolean down) {
   servoZ.write(down == 1 ? 90 : 120);
+  // ToDo: check after removing 'A'
   delay(200);
 }
 
@@ -298,24 +402,24 @@ void readLong(long& val) {
   }
 }
 
-void phoneSensorListener() {
-  if (digitalRead(PHONE_POSITION_SENSOR) == LOW) {
-    Serial.write(SERIAL_PHONE_POSITION_ERROR);
-  }
-  else {
-    Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
-  }
-  // ToDo: Check after using PD network
-  delay(40);
-}
+// void phoneSensorListener() {
+//   if (digitalRead(PHONE_POSITION_SENSOR) == LOW) {
+//     Serial.write(SERIAL_PHONE_POSITION_ERROR);
+//   }
+//   else {
+//     Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
+//   }
+//   // ToDo: Check after using PD network
+//   delay(40);
+// }
 
-void powerSupplyListener() {
-  if (digitalRead(POWER_SUPPLY_SENSOR) == LOW) {
-    Serial.write(SERIAL_POWER_SUPPLY_ERROR);
-  }
-  else {
-    Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
-  }
-  // ToDo: Check after using PD network
-  delay(40);
-}
+// void powerSupplyListener() {
+//   if (digitalRead(POWER_SUPPLY_SENSOR) == LOW) {
+//     Serial.write(SERIAL_POWER_SUPPLY_ERROR);
+//   }
+//   else {
+//     Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
+//   }
+//   // ToDo: Check after using PD network
+//   delay(40);
+// }

@@ -60,6 +60,18 @@ class PaintingTask extends CNCTask {
     }
   }
 
+  protected void handleFeedback(int signal) {
+    super.handleFeedback(signal);
+
+    switch (signal) {
+      case Constants.SERIAL_CNC_OUT_RANGE_ERROR:
+      if (cncListener != null) {
+        cncListener.onError(Constants.MSGS_ERRORS[Constants.ERROR_CNC_OUT_RANGE]);
+      }
+      break;
+    }
+  }
+
   public MovePenTask getMovePenBackTask() {
     MovePenTask movePenTask = new MovePenTask(rows, cols, Constants.PAINTING_MODE_STEPS_COUNT);
     movePenTask.setListener(this.cncListener);

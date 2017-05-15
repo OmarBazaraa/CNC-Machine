@@ -81,7 +81,7 @@ public class CNCTask {
         Constants.MSGS_ERRORS[Constants.ERROR_POWER_LOST], 
         false,
         true
-        );
+      );
       break;
 
       case Constants.SERIAL_POWER_SUPPLY_ERROR_FIXED:
@@ -90,7 +90,7 @@ public class CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_POWER_LOST], 
         true,
         true
-        );
+      );
       break;
     }
   }
@@ -105,8 +105,9 @@ public class CNCTask {
     // Arduino is connected
     if (Arrays.asList(Serial.list()).contains(arduinoPortName)) {
       if (errorsList.contains(Constants.ERROR_ARDUINO_DISCONNECTION)) {
-        if (cncListener != null)
+        if (cncListener != null) {
           cncListener.onArduinoConnected();
+        }
         
         sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
       }
@@ -116,7 +117,7 @@ public class CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
         true,
         sendSignal
-        );
+      );
     } 
     // Arduino disconnected!
     else {
@@ -125,7 +126,7 @@ public class CNCTask {
         Constants.MSGS_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION], 
         false,
         sendSignal
-        );
+      );
     }
   }
 
@@ -134,7 +135,8 @@ public class CNCTask {
       if (isSolved) {
         System.out.println(message);
         errorsList.remove(code);
-      } else {
+      } 
+      else {
         System.err.println(message);
         errorsList.add(code);
       }
@@ -144,7 +146,8 @@ public class CNCTask {
 
       if (errorsList.size() == 0 && isSolved) {
         port.write(Constants.SERIAL_CONTINUE_SIGNAL);
-      } else if (errorsList.size() == 1 && !isSolved) {
+      } 
+      else if (errorsList.size() == 1 && !isSolved) {
         port.write(Constants.SERIAL_STOP_SIGNAL);
       }
     }
