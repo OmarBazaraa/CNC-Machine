@@ -15,7 +15,7 @@ class MovePenTask extends CNCTask {
     this.motorStepsCount = steps;
   }
 
-  protected void initTask() {    
+  protected void setupTask() {    
     // Send configurations
     sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, this.motorStepsCount);
 

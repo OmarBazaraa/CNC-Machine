@@ -6,7 +6,7 @@ class CalibrationTask extends CNCTask {
   int currentKey = -1;
   long lastKeyTimestamp = 0;
 
-  protected void initTask() {
+  protected void setupTask() {
     // Send configurations
     sendConfigurations(Constants.SERIAL_MOTOR_STEPS_COUNT, Constants.CALIBRATION_MODE_STEPS_COUNT);
 

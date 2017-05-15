@@ -21,13 +21,6 @@ CNCListener cncListener = new CNCListener() {
     else {
       cncTask.start();
     }
-
-    // try {
-    //   cncTask.start();
-    // }
-    // catch (Exception e) {
-    //   cncTask = null;
-    // }
   }
 
   public void onError(String errorMessage) {
@@ -79,6 +72,7 @@ void setup() {
 // Application main loop function
 void draw() {
   if (cncTask == null) {
+    getUserOption();
     return;
   }
 
@@ -136,14 +130,15 @@ void displayUserOptionsMenu () {
 void keyPressed() {
   if (cncTask == null) {
     userOption = key - '0';
-  } else {
-    cncTask.setKeyStatus(key, true);
+    return;
+  } 
+  
+  cncTask.setKeyStatus(key, true);
 
-    if (key == 'T' || key == 't') {
-      System.out.println("Log :: Terminatting ...  ");
+  if (key == 'T' || key == 't') {
+    System.out.println("Log :: Terminatting ...  ");
 
-      cncTask.stop();
-    }
+    cncTask.stop();
   }
 }
 

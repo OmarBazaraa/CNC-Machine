@@ -9,7 +9,7 @@ class PaintingTask extends CNCTask {
 
   int rows = 0, cols = 0;
 
-  protected void initTask() throws Exception {
+  protected void setupTask() throws Exception {
     // Utilities.captureCameraShot();
 
     // Execute flow solver algorithm which generates instructions.txt file
