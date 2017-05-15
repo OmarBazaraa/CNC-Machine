@@ -18,12 +18,28 @@ CNCListener cncListener = new CNCListener() {
     if (cncTask == null) {
       displayUserOptionsMenu();
     }
-
-    try {
+    else {
       cncTask.start();
     }
-    catch (Exception e) {
-      cncTask = null;
+
+    // try {
+    //   cncTask.start();
+    // }
+    // catch (Exception e) {
+    //   cncTask = null;
+    // }
+  }
+
+  public void onError(String errorMessage) {
+    System.err.println(errorMessage);
+
+    cncTask = cncTask.getMovePenBackTask();
+
+    if (cncTask == null) {
+      displayUserOptionsMenu();
+    }
+    else {
+      cncTask.start();
     }
   }
 };
@@ -62,34 +78,14 @@ void setup() {
 
 // Application main loop function
 void draw() {
-  // Execute cncTask or get user option
-  try {
-    if (cncTask == null)
-      getUserOption();
-    else
-      cncTask.execute();
+  if (cncTask == null) {
+    return;
   }
-  catch (Exception e) {
-    System.err.println(e.getMessage());
 
-    displayUserOptionsMenu();
-
-    if (cncTask == null) return;
-
-    cncTask = cncTask.getMovePenBackTask();
-
-    try {
-      if (cncTask != null)
-        cncTask.start();
-    } 
-    catch(Exception e2) {
-      System.err.println(e2.getMessage());
-      cncTask = null;
-    }
-  }
+  cncTask.execute();
 }
 
-void getUserOption() throws Exception {
+void getUserOption() {
   int userSelectedOption = userOption;
   userOption = 0;
 

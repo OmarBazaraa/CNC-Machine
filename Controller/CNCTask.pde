@@ -1,93 +1,59 @@
 public class CNCTask {
   protected boolean acknowledgementReceived = true;
   protected boolean isTerminating = false;
-  protected boolean checksFailed = false;
   protected long lastCheckTimeStamp = 0; 
   protected CNCListener cncListener = null;
   protected ArrayList<Integer> errorsList = new ArrayList<Integer>();
 
-  public void start() throws Exception {
+  public void start() {
+    try {
+      setupTask();
+    }
+    catch (Exception e) {
+      if (cncListener != null) {
+        cncListener.onError(e.getMessage());
+      }
+    }
+  }
+
+  protected void setupTask() throws Exception {
+    
   }
 
   public void restart()  throws Exception {
+
   }
 
   public void stop() {
     isTerminating = true;
   }
 
-  public void setListener(CNCListener cncListener) {
-    this.cncListener = cncListener;
-  }
-
-  public void setKeyStatus(char k, boolean status) {
-  }
-
-  protected MovePenTask getMovePenBackTask() {
-    return null;
-  }
-
-  protected void interruptListener(String message, int action) {
-    if (action == Constants.INTURREPT_ACTION_STOP) {
-      System.err.println(message);
-      sendInstruction(Constants.SERIAL_STOP_SIGNAL);
-    } else if (action == Constants.INTURREPT_ACTION_CONTINUE) {
-      System.out.println(message);
-      sendInstruction(Constants.SERIAL_CONTINUE_SIGNAL);
+  public void execute() {
+    receiveFeedback();
+    check();
+    
+    if (errorsList.size() > 0 || !acknowledgementReceived) {
+      return;
     }
-  }
-
-  protected void errorHandler(Integer code, String message, boolean isSolved) {
-    // if (isSolved) {
-    //   if (errorsList.contains(code)) {
-    //     System.out.println(message);
-    //     errorsList.remove(code);
-
-    //     // Send continue signal if and only if all errors are handled
-    //     if (errorsList.size() == 0) 
-    //       sendInstruction(Constants.SERIAL_CONTINUE_SIGNAL);
-    //   }
-    // }
-    // else {
-    //   if (!errorsList.contains(code)) {
-    //     System.err.println(message);
-
-    //     if (errorsList.size() == 0) 
-    //       sendInstruction(Constants.SERIAL_STOP_SIGNAL);
-
-    //     errorsList.add(code);
-    //   }
-    // }
-
-
-    if (errorsList.contains(code) == isSolved) {
-      System.out.println(message);
-
-      if (isSolved)
-        errorsList.remove(code);
-      else
-        errorsList.add(code);
-
-      if (errorsList.size() == 0 && isSolved) {
-        sendInstruction(Constants.SERIAL_CONTINUE_SIGNAL);
+    
+    if (isTerminating) {
+      if (cncListener != null) {
+        cncListener.onStop();
       }
-      else if (errorsList.size() == 1 && !isSolved) {
-        sendInstruction(Constants.SERIAL_STOP_SIGNAL);
+      return;
+    }
+    
+    try {
+      executeInstruction();
+    }
+    catch (Exception e) {
+      if (cncListener != null) {
+        cncListener.onError(e.getMessage());
       }
     }
   }
-  
-  protected void handleFeedback(int signal) {
-    switch (signal) {
-      case Constants.SERIAL_POWER_SUPPLY_ERROR:
-      errorHandler(Constants.ERROR_POWER_LOST, "We lost power :(", false);
-      break;
 
-      case Constants.SERIAL_POWER_SUPPLY_ERROR_FIXED:
-      errorHandler(Constants.ERROR_POWER_LOST, "Power is back :D", true);
-      break;
-    }
-  }
+  protected void executeInstruction() throws Exception {}
 
   protected void receiveFeedback() {
     if (port.available() <= 0) return;
@@ -101,6 +67,18 @@ public class CNCTask {
 
     // handleFeedback(signal);
   }  
+
+  protected void handleFeedback(int signal) {
+    switch (signal) {
+      case Constants.SERIAL_POWER_SUPPLY_ERROR:
+      errorHandler(Constants.ERROR_POWER_LOST, "We lost power :(", false);
+      break;
+
+      case Constants.SERIAL_POWER_SUPPLY_ERROR_FIXED:
+      errorHandler(Constants.ERROR_POWER_LOST, "Power is back :D", true);
+      break;
+    }
+  }
 
   protected void check() {
     if (System.currentTimeMillis() - lastCheckTimeStamp > 100) {
@@ -119,28 +97,37 @@ public class CNCTask {
     }
   }
 
-  public void execute() throws Exception {
-    receiveFeedback();
-    check();
-    
-    if (errorsList.size() > 0 || !acknowledgementReceived) {
-      return;
-    }
-    
-    if (isTerminating) {
-      if (cncListener != null) {
-        cncListener.onStop();
+  protected void errorHandler(Integer code, String message, boolean isSolved) {
+    if (errorsList.contains(code) == isSolved) {
+      System.out.println(message);
+
+      if (isSolved)
+        errorsList.remove(code);
+      else
+        errorsList.add(code);
+
+      if (errorsList.size() == 0 && isSolved) {
+        sendInstruction(Constants.SERIAL_CONTINUE_SIGNAL);
       }
-    } 
-    else {
-      executeInstruction();
+      else if (errorsList.size() == 1 && !isSolved) {
+        sendInstruction(Constants.SERIAL_STOP_SIGNAL);
+      }
     }
   }
-
-  protected void executeInstruction() throws Exception {
+  
+  public void setListener(CNCListener cncListener) {
+    this.cncListener = cncListener;
   }
 
-  protected void sendConfigurations(char key, int value) {
+  public void setKeyStatus(char k, boolean status) {
+
+  }
+
+  public MovePenTask getMovePenBackTask() {
+    return null;
+  }
+
+  public void sendConfigurations(char key, int value) {
     System.out.println("Sending Configs...");
 
     sendInstruction(key);
