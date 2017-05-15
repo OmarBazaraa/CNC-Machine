@@ -64,12 +64,11 @@ boolean isMotorStepping = false;
 long lastBeepSoundTimestamp = 0;
 long beepsRemainingCount = 0;
 long beepDuration = 0;
-long beepLoopIdx = 0;
 int beepSignal = HIGH;
 boolean isBuzzerBeeping = false;
 
 //
-// Interrupt flags
+// Interrupt variables
 //
 int phonePositionFlag = HIGH;
 int powerSupplyFlag = HIGH;
@@ -77,6 +76,51 @@ int cncRangeUpFlag = LOW;
 int cncRangeDownFlag = LOW;
 int cncRangeLeftFlag = LOW;
 int cncRangeRightFlag = LOW;
+
+int interruptPins[] = {
+  PHONE_POSITION_SENSOR_PIN,
+  POWER_SUPPLY_SENSOR_PIN,
+  CNC_RANGE_UP_PIN,
+  CNC_RANGE_DOWN_PIN,
+  CNC_RANGE_LEFT_PIN,
+  CNC_RANGE_RIGHT_PIN
+};
+
+int* interruptFlags[] = {
+  phonePositionFlag,
+  powerSupplyFlag,
+  cncRangeUpFlag,
+  cncRangeDownFlag,
+  cncRangeLeftFlag,
+  cncRangeRightFlag
+};
+
+char interruptErrorChar[] = {
+  SERIAL_PHONE_POSITION_ERROR,
+  SERIAL_POWER_SUPPLY_ERROR,
+  SERIAL_CNC_OUT_RANGE_ERROR,
+  SERIAL_CNC_OUT_RANGE_ERROR,
+  SERIAL_CNC_OUT_RANGE_ERROR,
+  SERIAL_CNC_OUT_RANGE_ERROR
+};
+
+char interruptErrorFixChar[] = {
+  SERIAL_PHONE_POSITION_ERROR_FIXED,
+  SERIAL_POWER_SUPPLY_ERROR_FIXED,
+  SERIAL_CNC_OUT_RANGE_ERROR_FIXED,
+  SERIAL_CNC_OUT_RANGE_ERROR_FIXED,
+  SERIAL_CNC_OUT_RANGE_ERROR_FIXED,
+  SERIAL_CNC_OUT_RANGE_ERROR_FIXED
+};
+
+int interruptErrorSignal[] = {
+  LOW,
+  HIGH,
+  HIGH,
+  HIGH,
+  HIGH,
+  HIGH
+};
 
 //
 // Error variables
@@ -91,7 +135,7 @@ void setup() {
   // Configure serial port
   Serial.begin(9600);
 
-  // Flush serial buffer
+  // Clear serial buffer
   while (Serial.available() > 0) {
     Serial.read();
   }
@@ -99,8 +143,12 @@ void setup() {
   // Setup pins mode
   pinMode(13, OUTPUT);
 
-  pinMode(PHONE_POSITION_SENSOR_PIN, INPUT);
   pinMode(POWER_SUPPLY_SENSOR_PIN, INPUT);
+  pinMode(PHONE_POSITION_SENSOR_PIN, INPUT);
+  pinMode(CNC_RANGE_UP_PIN, INPUT);
+  pinMode(CNC_RANGE_DOWN_PIN, INPUT);
+  pinMode(CNC_RANGE_LEFT_PIN, INPUT);
+  pinMode(CNC_RANGE_RIGHT_PIN, INPUT);
 
   pinMode(BUZZER_PIN, OUTPUT);
 
@@ -204,13 +252,30 @@ void continueExecution() {
 }
 
 void checkInterrupts() {
+  // TODO: to be tested
+
+  // for (int i = 0; i < 6; ++i) {
+  //   int pinRead = digitalRead(interruptPins[i]);
+
+  //   if (pinRead == *interruptFlags[i]) {
+  //     continue;
+  //   }
+
+  //   if (pinRead == interruptErrorSignal[i])
+  //     Serial.write(interruptErrorChar[i]);
+  //   else
+  //     Serial.write(interruptErrorFixChar[i]);
+
+  //   *interruptFlags[i] = pinRead;
+  // }
+
   // Check phone in position
   int newRead = digitalRead(PHONE_POSITION_SENSOR_PIN);
   if (newRead != phonePositionFlag) {
-    if (newRead == HIGH)
-      Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
-    else
+    if (newRead == LOW)
       Serial.write(SERIAL_PHONE_POSITION_ERROR);
+    else
+      Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
 
     phonePositionFlag = newRead;
   }
@@ -294,32 +359,41 @@ void initStepper(int stepPin, int directionPin, boolean dir) {
   digitalWrite(motorDirectionPin, motorDirection);
 }
 
-void moveStepper() {
-  if (!isMotorStepping || errorExists) {
-    return;
-  }
-
+boolean isValidMotorStep() {
   // Checking left and right direction ranges
   if (motorStepPin == STEP_PIN_Y) {
     if (motorDirection && cncRangeRightFlag == HIGH) {
       Serial.write(SERIAL_ACKNOWLEDGMENT);
-      return;
+      initBuzzer(400, 3); // Error sound
+      return false;
     }
     if (!motorDirection && cncRangeLeftFlag == HIGH) {
       Serial.write(SERIAL_ACKNOWLEDGMENT);
-      return;
+      initBuzzer(400, 3); // Error sound
+      return false;
     }
   }
+
   // Checking up and down direction ranges
-  else if (motorStepPin == STEP_PIN_X) {
-    if (motorDirection && cncRangeUpFlag == HIGH) {
+  if (motorStepPin == STEP_PIN_X) {
+    if (motorDirection && cncRangeDownFlag == HIGH) {
       Serial.write(SERIAL_ACKNOWLEDGMENT);
-      return;
+      initBuzzer(400, 3); // Error sound
+      return false;
     }
-    if (!motorDirection && cncRangeDownFlag == HIGH) {
+    if (!motorDirection && cncRangeUpFlag == HIGH) {
       Serial.write(SERIAL_ACKNOWLEDGMENT);
-      return;
+      initBuzzer(400, 3); // Error sound
+      return false;
     }
+  }
+
+  return true;
+}
+
+void moveStepper() {
+  if (!isMotorStepping || errorExists || !isValidMotorStep()) {
+    return;
   }
 
   digitalWrite(motorStepPin, HIGH);
@@ -349,7 +423,6 @@ void moveServo(boolean down) {
 void initBuzzer(long duration, long count) {
   beepsRemainingCount = count;
   beepDuration = duration;
-  beepLoopIdx = 0;
   lastBeepSoundTimestamp = 0;
 
   beepSignal = HIGH;
@@ -372,12 +445,12 @@ void beep() {
 
   if (--beepsRemainingCount == 0) {
     isBuzzerBeeping = false;
-    // Serial.write(SERIAL_ACKNOWLEDGMENT);
   }
 
   lastBeepSoundTimestamp = currentTimestamp;
 }
 
+// ToDo: fix piano mode
 void piano(int key) {
   key = key % 48;
   // tone(BUZZER_PIN, notes[key], 1000);
@@ -401,25 +474,3 @@ void readLong(long& val) {
     bitsReceived += 8;
   }
 }
-
-// void phoneSensorListener() {
-//   if (digitalRead(PHONE_POSITION_SENSOR_PIN) == LOW) {
-//     Serial.write(SERIAL_PHONE_POSITION_ERROR);
-//   }
-//   else {
-//     Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
-//   }
-//   // ToDo: Check after using PD network
-//   delay(40);
-// }
-
-// void powerSupplyListener() {
-//   if (digitalRead(POWER_SUPPLY_SENSOR_PIN) == LOW) {
-//     Serial.write(SERIAL_POWER_SUPPLY_ERROR);
-//   }
-//   else {
-//     Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
-//   }
-//   // ToDo: Check after using PD network
-//   delay(40);
-// }
