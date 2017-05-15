@@ -9,7 +9,7 @@ class PaintingTask extends CNCTask {
 
   int rows = 0, cols = 0;
 
-  public void start() throws Exception {
+  protected void initTask() throws Exception {
     // Utilities.captureCameraShot();
 
     // Execute flow solver algorithm which generates instructions.txt file
@@ -58,7 +58,7 @@ class PaintingTask extends CNCTask {
     }
   }
 
-  protected MovePenTask getMovePenBackTask() {
+  public MovePenTask getMovePenBackTask() {
     MovePenTask movePenTask = new MovePenTask(rows, cols, Constants.PAINTING_MODE_STEPS_COUNT);
     movePenTask.setListener(this.cncListener);
 

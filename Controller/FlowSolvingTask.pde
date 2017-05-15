@@ -1,4 +1,4 @@
-import java.nio.file.Files; //<>// //<>//
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -22,13 +22,16 @@ class FlowSolvingTask extends CNCTask {
   String nextLevelButtonX = "0";
   String nextLevelButtonY = "0";
 
-  public FlowSolvingTask () throws Exception {
-    // Get screen specs
-    this.getScreenSpecs();
+  public FlowSolvingTask () {
+    
   }
 
-  public void start() throws Exception {
+  protected void setupTask() throws Exception {
     System.out.println("Starting flow solver...");
+
+    // TODO:
+    // Get screen specs
+    this.getScreenSpecs();
 
     // Pull screenshot
     Utilities.captureScreenShot();
@@ -94,6 +97,28 @@ class FlowSolvingTask extends CNCTask {
     System.out.println("Stopping Flow Solver...");
   }
   
+  protected void executeInstruction() throws Exception {
+    // Return if insturctions finished
+    if (instructionsPointer == instructions.length()) {
+      restart();
+      return;
+    }
+
+    char instruction = instructions.charAt(instructionsPointer++);
+
+    sendInstruction(instruction);
+
+    // Update cols, rows
+    if (instruction == '^')
+      rows--;
+    else if (instruction == 'v')
+      rows++;
+    else if (instruction == '>')
+      cols++;
+    else if (instruction == '<')
+      cols--;
+  }
+
   protected void handleFeedback(int signal) {
     super.handleFeedback(signal);
     
@@ -152,33 +177,11 @@ class FlowSolvingTask extends CNCTask {
     }
   }
 
-  protected MovePenTask getMovePenBackTask() {
+  public MovePenTask getMovePenBackTask() {
     MovePenTask movePenTask = new MovePenTask(rows, cols, motorStepsCount);
     movePenTask.setListener(this.cncListener);
 
     return movePenTask;
-  }
-
-  protected void executeInstruction() throws Exception {
-    // Return if insturctions finished
-    if (instructionsPointer == instructions.length()) {
-      restart();
-      return;
-    }
-
-    char instruction = instructions.charAt(instructionsPointer++);
-
-    sendInstruction(instruction);
-
-    // Update cols, rows
-    if (instruction == '^')
-      rows--;
-    else if (instruction == 'v')
-      rows++;
-    else if (instruction == '>')
-      cols++;
-    else if (instruction == '<')
-      cols--;
   }
 
   private String[] parseInstructionsFile() throws Exception {

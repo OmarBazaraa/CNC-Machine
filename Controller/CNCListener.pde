@@ -1,3 +1,5 @@
-public interface CNCListener{
+public interface CNCListener {
 	public void onStop();
+
+	public void onError(String errorMessage);
 }
