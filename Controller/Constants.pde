@@ -1,10 +1,5 @@
 static class Constants {
 
-  //
-  // ARDUINO PORT NAME
-  //
-  static final String ARDUINO_PORT_NAME = "/dev/cu.usbmodem466";
-
   // 
   // PATHS AND FILES
   //

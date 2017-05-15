@@ -110,7 +110,7 @@ public class CNCTask {
 
   protected void scanEnvironment() {
     // Arduino is connected
-    if (Arrays.asList(Serial.list()).contains(Constants.ARDUINO_PORT_NAME)) {
+    if (Arrays.asList(Serial.list()).contains(arduinoPortName)) {
       errorHandler(Constants.ERROR_ARDUINO_DISCONNECTION, "Arduino is back :D", true);
     } 
     // Arduino disconnected!

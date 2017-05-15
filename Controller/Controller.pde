@@ -6,6 +6,7 @@ import java.util.Scanner;
 // ===========================
 int userOption = 0;
 
+String arduinoPortName = "";
 Serial port = null;
 CNCTask cncTask;
 
@@ -28,16 +29,33 @@ CNCListener cncListener = new CNCListener() {
 };
 
 void setup() {
-  // Display all ports
-  for (int i = 0; i < Serial.list().length; ++i) {
-    System.out.println(i + "." + Serial.list()[i]);
-  }
+  System.out.println("Please enter Arduino port number:");
 
-  // Conenct to port
-  port = new Serial(this, Serial.list()[4], 9600);
-  port.clear();
+  // Get port number from user
+  Scanner scanner = new Scanner(System.in);
+  int portNumber = 5;
+
+  // do {
+  //   // Display all ports
+  //   for (int i = 0; i < Serial.list().length; ++i) {
+  //     System.out.println(i + "." + Serial.list()[i]);
+  //   }
+    
+  //   portNumber = scanner.nextInt();
+
+  // } while (portNumber >= Serial.list().length || portNumber < 0);
   
+  arduinoPortName = Serial.list()[portNumber];
+  
+  System.out.println("Arduino port: " + arduinoPortName  + " is selected!");
+  
+  // Conenct to port
+  port = new Serial(this, Serial.list()[portNumber], 9600);
+  port.clear();
+
   delay(3000);
+
+  scanner.close();
   
   displayUserOptionsMenu();
 }
@@ -53,17 +71,18 @@ void draw() {
   }
   catch (Exception e) {
     System.err.println(e.getMessage());
-    
+
     displayUserOptionsMenu();
 
     if (cncTask == null) return;
-    
+
     cncTask = cncTask.getMovePenBackTask();
-    
+
     try {
       if (cncTask != null)
         cncTask.start();
-    } catch(Exception e2) {
+    } 
+    catch(Exception e2) {
       System.err.println(e2.getMessage());
       cncTask = null;
     }
@@ -76,26 +95,26 @@ void getUserOption() throws Exception {
 
   // Perform user action
   switch (userSelectedOption) {
-    case Constants.USER_OPTIONS_FLOW_SOLVER:
+  case Constants.USER_OPTIONS_FLOW_SOLVER:
     cncTask = new FlowSolvingTask();
     break;
 
-    case Constants.USER_OPTIONS_PAPER_PAINT:
+  case Constants.USER_OPTIONS_PAPER_PAINT:
     cncTask = new PaintingTask();
     break;
 
-    case Constants.USER_OPTIONS_PHONE_PAINT:
+  case Constants.USER_OPTIONS_PHONE_PAINT:
     break;
 
-    case Constants.USER_OPTIONS_PIANO:
+  case Constants.USER_OPTIONS_PIANO:
     cncTask = new PianoTask();
     break;
 
-    case Constants.USER_OPTIONS_CALIBRATION:
+  case Constants.USER_OPTIONS_CALIBRATION:
     cncTask = new CalibrationTask();
     break;
 
-    case Constants.USER_OPTIONS_QUIT_SYSTEM:
+  case Constants.USER_OPTIONS_QUIT_SYSTEM:
     System.out.println("Bye!");
     exit();
   }
@@ -121,8 +140,7 @@ void displayUserOptionsMenu () {
 void keyPressed() {
   if (cncTask == null) {
     userOption = key - '0';
-  }
-  else {
+  } else {
     cncTask.setKeyStatus(key, true);
 
     if (key == 'T' || key == 't') {
@@ -130,7 +148,7 @@ void keyPressed() {
 
       cncTask.stop();
     }
-  }  
+  }
 }
 
 void keyReleased() {
