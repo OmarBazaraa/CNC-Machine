@@ -62,7 +62,7 @@ static class Utilities {
         "shell", "am", "start", "-a", "android.media.action.STILL_IMAGE_CAMERA", "&& sleep 1", 
         "&& input keyevent KEYCODE_FOCUS", "&& sleep 2", "&& input keyevent 27", "&& sleep 4", 
         "&& cd /storage/3D13-1817/DCIM/Camera/ && IFS=$'\n' && output=(`ls -l`) && lines=${#output[@]} &&  file=${output[$((lines-1))]: -23} && cp $file /sdcard/painter_img.jpg"
-        });
+      });
 
       // Execute adb command to pull camera shot
       executeSystemCommand(new String[]{
@@ -106,10 +106,10 @@ static class Utilities {
     }
 
     screenDPI = screenDPI.substring(separatorIdx + 1, dpiIdx - 1)
-      .replace(")", "")
-      .replace("(", "")
-      .replace(" ", "")
-      .replace("x", " ");
+    .replace(")", "")
+    .replace("(", "")
+    .replace(" ", "")
+    .replace("x", " ");
 
     return screenDPI;
   }
@@ -138,6 +138,35 @@ static class Utilities {
 
     if (f.exists()) {
       f.delete();
+    }
+  }
+
+  public static boolean checkPhoneConnection() {
+    try {      
+      String checkPhoneConnectionOutput = Utilities.executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "devices"
+      });
+
+      return !checkPhoneConnectionOutput.trim().equals("List of devices attached");
+    } 
+    catch(Exception e) {
+      return false;
+    }
+  }
+
+  public static boolean checkAndroidActivity(String activity) {
+    try{
+      String checkGameActivityOutput = Utilities.executeSystemCommand(new String[]{
+        Constants.PATH_ADB, 
+        "shell", "dumpsys", "window", "windows", "|", 
+        "grep", "-E", "'mCurrentFocus|mFocusedApp'"
+      });
+
+      return (checkGameActivityOutput.indexOf(activity) != -1);
+    }
+    catch (Exception e) {
+      return false;
     }
   }
 }

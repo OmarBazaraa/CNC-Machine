@@ -45,7 +45,7 @@ static class Constants {
   //
 
   // CONTROLLER -> ARDUINO
-  static final List<Character> ALLOWED_CALIBRATION_INSTRUCTIONS = Arrays.asList('>', '<', 'v', '^', 'P', 'R', 'B');
+  static final List<Character> ALLOWED_CALIBRATION_INSTRUCTIONS = Arrays.asList('>', '<', 'v', '^', 'P', 'R');
 
   static final char SERIAL_MOTOR_STEPS_COUNT = 'S';
   static final char SERIAL_CONTINUE_SIGNAL = 'C';
