@@ -137,11 +137,9 @@ class FlowSolvingTask extends CNCTask {
       break;
 
       case Constants.SERIAL_CNC_OUT_RANGE_ERROR:
-      
       if (cncListener != null) {
-        cncListener.onError(Constants.MSGS_FIXED_ERRORS[Constants.ERROR_CNC_OUT_RANGE]);
+        cncListener.onError(Constants.MSGS_ERRORS[Constants.ERROR_CNC_OUT_RANGE]);
       }
-
       break;
     }
   }

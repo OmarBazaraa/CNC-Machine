@@ -28,7 +28,6 @@ const char SERIAL_CNC_OUT_RANGE_ERROR_FIXED = 'M';
 //
 const int PHONE_POSITION_SENSOR = 2;
 const int POWER_SUPPLY_SENSOR = 3;
-// TODO: get pin numbers
 const int CNC_RANGE_UP = x;
 const int CNC_RANGE_DOWN = x;
 const int CNC_RANGE_LEFT = x;

@@ -59,6 +59,7 @@ static class Constants {
   static final char SERIAL_POWER_SUPPLY_ERROR = 'S';
   static final char SERIAL_POWER_SUPPLY_ERROR_FIXED = 'F';
   static final char SERIAL_CNC_OUT_RANGE_ERROR = 'R';
+  static final char SERIAL_CNC_OUT_RANGE_ERROR_FIXED = 'M';
 
   //
   // FLOW-SOLVER SCRIPT MODES
