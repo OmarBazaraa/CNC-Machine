@@ -1,10 +1,10 @@
 public class CNCTask {
+  protected int motorStepsCount = 0;
   protected boolean acknowledgementReceived = true;
   protected boolean isTerminating = false;
   protected long lastCheckTimeStamp = 0; 
   protected CNCListener cncListener = null;
   protected ArrayList<Integer> errorsList = new ArrayList<Integer>();
-  protected int motorStepsCount = 0;
 
   public void start() {
     try {
@@ -96,8 +96,11 @@ public class CNCTask {
   }
 
   protected void check() {
-    if (System.currentTimeMillis() - lastCheckTimeStamp > 100) {
+    long currentTime = System.currentTimeMillis();
+    
+    if (currentTime - lastCheckTimeStamp > 100) {
       scanEnvironment(true);
+      lastCheckTimeStamp = currentTime;
     }
   }
 
