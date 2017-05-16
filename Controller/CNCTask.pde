@@ -8,6 +8,10 @@ public class CNCTask {
 
   public void start() {
     try {
+      // Check for errors in Arduino
+      port.write(Constants.SERIAL_CHECK_INTERRUPTS);
+
+      // Check for errors in Controller
       scanEnvironment(false);
       
       if (errorsList.size() > 0) {
@@ -66,6 +70,8 @@ public class CNCTask {
 
     int signal = port.read();
 
+    System.out.println((char) signal);
+
     if (signal == Constants.SERIAL_ACKNOWLEDGMENT) {
       acknowledgementReceived = true;
       return;
@@ -120,6 +126,7 @@ public class CNCTask {
         cncListener.onArduinoConnected();
       }
 
+      // Check for errors in Arduino
       port.write(Constants.SERIAL_CHECK_INTERRUPTS);
 
       // Assuming that the last instruction finished successfully

@@ -50,7 +50,6 @@ static class Constants {
   static final char SERIAL_MOTOR_STEPS_COUNT = 'S';
   static final char SERIAL_CONTINUE_SIGNAL = 'C';
   static final char SERIAL_STOP_SIGNAL = 'E';
-  static final char SERIAL_BEEP = 'B';
   static final char SERIAL_CHECK_INTERRUPTS = 'T';
 
   // ARDUINO -> CONTROLLER
