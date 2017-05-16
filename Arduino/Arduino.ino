@@ -13,6 +13,7 @@ const char SERIAL_MOTOR_STEPS_COUNT = 'S';
 const char SERIAL_CONTINUE_SIGNAL = 'C';
 const char SERIAL_STOP_SIGNAL = 'E';
 const char SERIAL_BEEP = 'B';
+const char SERIAL_CHECK_INTERRUPTS = 'T';
 
 // ARDUINO -> CONTROLLER
 const char SERIAL_ACKNOWLEDGMENT = 'A';
@@ -87,12 +88,12 @@ int interruptPins[] = {
 };
 
 int* interruptFlags[] = {
-  phonePositionFlag,
-  powerSupplyFlag,
-  cncRangeUpFlag,
-  cncRangeDownFlag,
-  cncRangeLeftFlag,
-  cncRangeRightFlag
+  &phonePositionFlag,
+  &powerSupplyFlag,
+  &cncRangeUpFlag,
+  &cncRangeDownFlag,
+  &cncRangeLeftFlag,
+  &cncRangeRightFlag
 };
 
 char interruptErrorChar[] = {
@@ -195,6 +196,8 @@ void executeCommand(int command) {
   // Continue command exection
   else if (command == SERIAL_CONTINUE_SIGNAL)
     continueExecution();
+  else if (command == SERIAL_CHECK_INTERRUPTS)
+  	sendInterruptsErrors();
 
   //
   // Motor commands
@@ -254,85 +257,96 @@ void continueExecution() {
 void checkInterrupts() {
   // TODO: to be tested
 
-  // for (int i = 0; i < 6; ++i) {
-  //   int pinRead = digitalRead(interruptPins[i]);
+  for (int i = 0; i < 6; ++i) {
+    int pinRead = digitalRead(interruptPins[i]);
 
-  //   if (pinRead == *interruptFlags[i]) {
-  //     continue;
-  //   }
+    if (pinRead == *interruptFlags[i]) {
+      continue;
+    }
 
-  //   if (pinRead == interruptErrorSignal[i])
-  //     Serial.write(interruptErrorChar[i]);
+    if (pinRead == interruptErrorSignal[i])
+      Serial.write(interruptErrorChar[i]);
+    else
+      Serial.write(interruptErrorFixChar[i]);
+
+    *interruptFlags[i] = pinRead;
+  }
+
+  // // Check phone in position
+  // int newRead = digitalRead(PHONE_POSITION_SENSOR_PIN);
+  // if (newRead != phonePositionFlag) {
+  //   if (newRead == LOW)
+  //     Serial.write(SERIAL_PHONE_POSITION_ERROR);
   //   else
-  //     Serial.write(interruptErrorFixChar[i]);
+  //     Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
 
-  //   *interruptFlags[i] = pinRead;
+  //   phonePositionFlag = newRead;
   // }
 
-  // Check phone in position
-  int newRead = digitalRead(PHONE_POSITION_SENSOR_PIN);
-  if (newRead != phonePositionFlag) {
-    if (newRead == LOW)
-      Serial.write(SERIAL_PHONE_POSITION_ERROR);
-    else
-      Serial.write(SERIAL_PHONE_POSITION_ERROR_FIXED);
+  // // Check power supply
+  // newRead = digitalRead(POWER_SUPPLY_SENSOR_PIN);
+  // if (newRead != powerSupplyFlag) {
+  //   if (newRead == HIGH)
+  //     Serial.write(SERIAL_POWER_SUPPLY_ERROR);
+  //   else
+  //     Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
 
-    phonePositionFlag = newRead;
-  }
+  //   powerSupplyFlag = newRead;
+  // }
 
-  // Check power supply
-  newRead = digitalRead(POWER_SUPPLY_SENSOR_PIN);
-  if (newRead != powerSupplyFlag) {
-    if (newRead == HIGH)
-      Serial.write(SERIAL_POWER_SUPPLY_ERROR);
-    else
-      Serial.write(SERIAL_POWER_SUPPLY_ERROR_FIXED);
+  // // Out of range up
+  // newRead = digitalRead(CNC_RANGE_UP_PIN);
+  // if (newRead != cncRangeUpFlag) {
+  //   if (newRead == HIGH)
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+  //   else
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    powerSupplyFlag = newRead;
-  }
+  //   cncRangeUpFlag = newRead;
+  // }
 
-  // Out of range up
-  newRead = digitalRead(CNC_RANGE_UP_PIN);
-  if (newRead != cncRangeUpFlag) {
-    if (newRead == HIGH)
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
-    else
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+  // // Out of range down
+  // newRead = digitalRead(CNC_RANGE_DOWN_PIN);
+  // if (newRead != cncRangeDownFlag) {
+  //   if (newRead == HIGH)
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+  //   else
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    cncRangeUpFlag = newRead;
-  }
+  //   cncRangeDownFlag = newRead;
+  // }
 
-  // Out of range down
-  newRead = digitalRead(CNC_RANGE_DOWN_PIN);
-  if (newRead != cncRangeDownFlag) {
-    if (newRead == HIGH)
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
-    else
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+  // // Out of range left
+  // newRead = digitalRead(CNC_RANGE_LEFT_PIN);
+  // if (newRead != cncRangeLeftFlag) {
+  //   if (newRead == HIGH)
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+  //   else
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    cncRangeDownFlag = newRead;
-  }
+  //   cncRangeLeftFlag = newRead;
+  // }
 
-  // Out of range left
-  newRead = digitalRead(CNC_RANGE_LEFT_PIN);
-  if (newRead != cncRangeLeftFlag) {
-    if (newRead == HIGH)
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
-    else
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+  // // Out of range right
+  // newRead = digitalRead(CNC_RANGE_RIGHT_PIN);
+  // if (newRead != cncRangeRightFlag) {
+  //   if (newRead == HIGH)
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
+  //   else
+  //     Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
 
-    cncRangeLeftFlag = newRead;
-  }
+  //   cncRangeRightFlag = newRead;
+  // }
+}
 
-  // Out of range right
-  newRead = digitalRead(CNC_RANGE_RIGHT_PIN);
-  if (newRead != cncRangeRightFlag) {
-    if (newRead == HIGH)
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR);
-    else
-      Serial.write(SERIAL_CNC_OUT_RANGE_ERROR_FIXED);
+void sendInterruptsErrors() {
+  for (int i = 0; i < 6; ++i) {
+    int pinRead = digitalRead(interruptPins[i]);
 
-    cncRangeRightFlag = newRead;
+    if (pinRead == interruptErrorSignal[i])
+      Serial.write(interruptErrorChar[i]);
+
+    *interruptFlags[i] = pinRead;
   }
 }
 
@@ -363,11 +377,13 @@ boolean isValidMotorStep() {
   // Checking left and right direction ranges
   if (motorStepPin == STEP_PIN_Y) {
     if (motorDirection && cncRangeRightFlag == HIGH) {
+      isMotorStepping = false;
       Serial.write(SERIAL_ACKNOWLEDGMENT);
       initBuzzer(400, 3); // Error sound
       return false;
     }
     if (!motorDirection && cncRangeLeftFlag == HIGH) {
+      isMotorStepping = false;
       Serial.write(SERIAL_ACKNOWLEDGMENT);
       initBuzzer(400, 3); // Error sound
       return false;
@@ -377,11 +393,13 @@ boolean isValidMotorStep() {
   // Checking up and down direction ranges
   if (motorStepPin == STEP_PIN_X) {
     if (motorDirection && cncRangeDownFlag == HIGH) {
+      isMotorStepping = false;
       Serial.write(SERIAL_ACKNOWLEDGMENT);
       initBuzzer(400, 3); // Error sound
       return false;
     }
     if (!motorDirection && cncRangeUpFlag == HIGH) {
+      isMotorStepping = false;
       Serial.write(SERIAL_ACKNOWLEDGMENT);
       initBuzzer(400, 3); // Error sound
       return false;
@@ -392,7 +410,7 @@ boolean isValidMotorStep() {
 }
 
 void moveStepper() {
-  if (!isMotorStepping || errorExists || !isValidMotorStep()) {
+  if (!isMotorStepping || !powerSupplyFlag || errorExists || !isValidMotorStep()) {
     return;
   }
 
@@ -424,9 +442,7 @@ void initBuzzer(long duration, long count) {
   beepsRemainingCount = count;
   beepDuration = duration;
   lastBeepSoundTimestamp = 0;
-
   beepSignal = HIGH;
-
   isBuzzerBeeping = true;
 }
 

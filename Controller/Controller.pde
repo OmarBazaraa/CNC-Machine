@@ -10,9 +10,8 @@ int serialDevicesListSize = 0;
 int portNumber = -1;
 String arduinoPortName = "";
 Serial port = null;
-CNCTask cncTask;
 
-// CNC listener
+CNCTask cncTask;
 CNCListener cncListener = new CNCListener() {
   public void onStop() {
     cncTask = cncTask.getMovePenBackTask();

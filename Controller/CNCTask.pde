@@ -109,12 +109,14 @@ public class CNCTask {
 
     // Arduino is connected
     if (arduinoConnected) {
-      System.out.println(Constants.MSGS_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION]);
+      System.out.println(Constants.MSGS_FIXED_ERRORS[Constants.ERROR_ARDUINO_DISCONNECTION]);
       errorsList.remove(Constants.ERROR_ARDUINO_DISCONNECTION);
 
       if (cncListener != null) {
         cncListener.onArduinoConnected();
       }
+
+      port.write(Constants.SERIAL_CHECK_INTERRUPTS);
     }
     // Arduino disconnected!
     else {
