@@ -10,8 +10,9 @@ public class CNCTask {
     try {
       scanEnvironment(false);
       
-      if (errorsList.size() > 0)
+      if (errorsList.size() > 0) {
         throw new Exception();
+      }
 
       setupTask();
     }
@@ -120,6 +121,9 @@ public class CNCTask {
       }
 
       port.write(Constants.SERIAL_CHECK_INTERRUPTS);
+
+      // Assuming that the last instruction finished successfully
+      acknowledgementReceived = true;
     }
     // Arduino disconnected!
     else {

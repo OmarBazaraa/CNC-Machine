@@ -116,7 +116,6 @@ void keyPressed() {
 
   if (key == 'T' || key == 't') {
     System.out.println("Log :: Terminatting ...  ");
-
     cncTask.stop();
   }
 }

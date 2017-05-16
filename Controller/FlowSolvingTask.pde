@@ -256,14 +256,10 @@ class FlowSolvingTask extends CNCTask {
     String screenSpecs = Utilities.getScreenSize().trim();
 
     // Format output size and fill member variables
-    this.storeScreenSpecs(screenSpecs);
-
-    System.out.println("Log :: Screen size stored");
-  }
-
-  private void storeScreenSpecs(String screenSpecs) {
     String[] screenSpecsArray = screenSpecs.split("\\s+", -1);
     this.screenWDPI = (int) Double.parseDouble(screenSpecsArray[0]);
     this.screenHDPI = (int) Double.parseDouble(screenSpecsArray[1]);
+
+    System.out.println("Log :: Screen size stored");
   }
 }

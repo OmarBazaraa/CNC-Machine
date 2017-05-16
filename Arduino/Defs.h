@@ -57,6 +57,8 @@ int motorStepPin = -1;
 int motorDirectionPin = -1;
 boolean isMotorStepping = false;
 
+int motorStepsCountAddress = 5;
+
 //
 // Sound variables
 //

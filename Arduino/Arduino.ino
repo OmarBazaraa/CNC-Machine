@@ -1,4 +1,5 @@
 #include <Servo.h>
+#include <EEPROM.h>
 #include "Defs.h"
 #include "Notes.h"
 
@@ -39,6 +40,9 @@ void setup() {
 
   // Setup stepper motor to full step mode
   digitalWrite(STEPPER_MODE_PIN, HIGH);
+
+  // Read last motor steps count
+  EEPROM.get(motorStepsCountAddress, motorStepsCount);
 }
 
 void loop() {
@@ -231,6 +235,9 @@ void sendInterruptsErrors() {
 void readMotorStepsCount() {
   readLong(motorStepsCount);
 
+  // ToDo: to be tested
+  storeLong(motorStepsCountAddress, motorStepsCount);
+
   Serial.write(SERIAL_ACKNOWLEDGMENT);
 
   // Beep sound
@@ -340,7 +347,6 @@ void beep() {
   lastBeepSoundTimestamp = currentTimestamp;
 }
 
-// ToDo: fix piano mode
 void piano(int key) {
   key = key % 48;
   tone(BUZZER_PIN, notes[key], 1000);
@@ -362,5 +368,13 @@ void readLong(long& val) {
     val |= incomingByte << bitsReceived;
 
     bitsReceived += 8;
+  }
+}
+
+void storeLong(int address, long val) {
+  // sizeof(long) = 4 bytes
+  for (int i = 0; i < 4; ++i) {
+    EEPROM.update(address++, val);
+    value >>= 8;
   }
 }
