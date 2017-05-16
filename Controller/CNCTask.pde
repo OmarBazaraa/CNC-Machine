@@ -120,6 +120,7 @@ public class CNCTask {
         cncListener.onArduinoConnected();
       }
 
+      // Check for errors on Aruino
       port.write(Constants.SERIAL_CHECK_INTERRUPTS);
 
       // Assuming that the last instruction finished successfully
