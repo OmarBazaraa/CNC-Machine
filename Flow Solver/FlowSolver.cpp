@@ -422,7 +422,9 @@ void FlowSolver::solve() {
 }
 
 bool FlowSolver::_solve(int row, int col, int prvRow, int prvCol, int colorIdx) {
-	++recursiveCalls;
+	if (++recursiveCalls > MAX_RECURSIVE_CALLS) {
+		throw exception("The given maze is unsolvable");
+	}
 
 	// Connected two pins of the same colors together
 	if (row == colorPairs[colorIdx].second.r && col == colorPairs[colorIdx].second.c) {
