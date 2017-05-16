@@ -1,4 +1,3 @@
-
 #define NOTE_B0  31
 #define NOTE_C1  33
 #define NOTE_CS1 35
@@ -133,4 +132,3 @@ int notes[] = {
   NOTE_D8,
   NOTE_DS8
 };
-
