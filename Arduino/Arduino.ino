@@ -35,7 +35,7 @@ void setup() {
   pinMode(STEPPER_MODE_PIN, OUTPUT);
 
   // Setup servo motor
-  servoZ.attach(9);
+  servoZ.attach(SERVO_PIN);
   // moveServo(0);
 
   // Setup stepper motor to full step mode
@@ -69,27 +69,32 @@ void executeCommand(int command) {
   // Error handling commands
   //
 
-  // Error
-  if (command == SERIAL_STOP_SIGNAL)
+  // Stop execution command
+  if (command == SERIAL_STOP_SIGNAL) {
     stopExecution();
+    return;
+  }
   // Continue command exection
-  else if (command == SERIAL_CONTINUE_SIGNAL)
+  else if (command == SERIAL_CONTINUE_SIGNAL) {
     continueExecution();
-  else if (command == SERIAL_CHECK_INTERRUPTS)
+    return;
+  }
+  else if (command == SERIAL_CHECK_INTERRUPTS) {
     sendInterruptsErrors();
-  
-  // Set up moter step count
-  else if (command == SERIAL_MOTOR_STEPS_COUNT)
-    readMotorStepsCount();
-  
-  //
-  // Motor commands
-  //
+    return;
+  } 
 
   if (errorExists)
     return;
 
-  if (command == '^')    // Move X Backwards
+  //
+  // Motor commands
+  //
+
+  // Set up moter step count
+  if (command == SERIAL_MOTOR_STEPS_COUNT)
+    readMotorStepsCount();
+  else if (command == '^')    // Move X Backwards
     initStepper(STEP_PIN_X, DIR_PIN_X, 1);
   else if (command == 'v')    // Move X Forward
     initStepper(STEP_PIN_X, DIR_PIN_X, 0);
@@ -200,6 +205,7 @@ boolean isValidMotorStep() {
   }
 
   lastMotorCheckTimestamp = currentMillis;
+
   rangeChecksState = false;
 
   // Checking left and right direction ranges
@@ -233,6 +239,7 @@ boolean isValidMotorStep() {
       return false;
     }
   }
+
   rangeChecksState = true;
 
   return rangeChecksState;
@@ -260,7 +267,6 @@ void moveStepper() {
 
 void moveServo(boolean down) {
   servoZ.write(down == 1 ? 90 : 120);
-  // ToDo: check after removing 'A'
   delay(200);
 }
 
@@ -297,11 +303,11 @@ void beep() {
 }
 
 void piano(int key) {
-  // key = key % 48;
-  // tone(BUZZER_PIN, notes[key], 100);
+  key = key % 48;
+  tone(BUZZER_PIN, notes[key], 100);
 
   // Send acknowledgment
-  // Serial.write(SERIAL_ACKNOWLEDGMENT);
+  Serial.write(SERIAL_ACKNOWLEDGMENT);
 }
 
 // ==========================================

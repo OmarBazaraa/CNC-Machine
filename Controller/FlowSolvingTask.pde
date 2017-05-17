@@ -3,6 +3,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class FlowSolvingTask extends CNCTask {
+
   public boolean screenSpecsRetrieved = false;
   public boolean deviceDisconnected = false;
   public boolean gameActivityNotShown = false;
@@ -24,7 +25,6 @@ class FlowSolvingTask extends CNCTask {
   protected void setupTask() throws Exception {
     System.out.println("Starting flow solver...");
 
-    // TODO:
     // Get screen specs
     this.getScreenSpecs();
 
@@ -124,7 +124,7 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_ERRORS[Constants.ERROR_PHONE_OFF_POSITION], 
         false, 
         true
-        );
+      );
       break;
 
       case Constants.SERIAL_PHONE_POSITION_ERROR_FIXED:
@@ -133,7 +133,7 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_PHONE_OFF_POSITION], 
         true, 
         true
-        );
+      );
       break;
 
       case Constants.SERIAL_CNC_OUT_RANGE_ERROR:
@@ -154,7 +154,7 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_PHONE_DISCONNECTION], 
         true, 
         sendSignal
-        );
+      );
     }
     else {
       errorHandler(
@@ -162,10 +162,13 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_ERRORS[Constants.ERROR_PHONE_DISCONNECTION], 
         false, 
         sendSignal
-        );
-      if (!errorsList.contains(Constants.ERROR_MISSING_GAME_ACTIVITY)){
+      );
+
+      // Assuming that flow game activity is missing when we lost connection with the phone
+      if (!errorsList.contains(Constants.ERROR_MISSING_GAME_ACTIVITY)) {
         errorsList.add(Constants.ERROR_MISSING_GAME_ACTIVITY);
       }
+
       return;
     }
 
@@ -176,7 +179,7 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_FIXED_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY], 
         true, 
         sendSignal
-        );
+      );
     }
     else {
       errorHandler(
@@ -184,7 +187,7 @@ class FlowSolvingTask extends CNCTask {
         Constants.MSGS_ERRORS[Constants.ERROR_MISSING_GAME_ACTIVITY], 
         false, 
         sendSignal
-        );
+      );
     }
   }
 

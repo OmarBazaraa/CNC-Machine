@@ -28,30 +28,6 @@ class PianoTask extends CNCTask {
       return;
     }
 
-    // currentKey = Character.toUpperCase(k);
-
-    // // Replace some keys (like S, >, <, ^, v, B, E, D) to avoid sending commands to motors
-    // if (k == 'S') 
-    //   currentKey = 35;        
-    // else if (k == '>')
-    //   currentKey = 14;        
-    // else if (k == '<')
-    //   currentKey = 12;        
-    // else if (k == '^')
-    //   currentKey = 46;          
-    // else if (k == 'v')
-    //   currentKey = 22;             
-    // else if (k == 'B')
-    //   currentKey = 18;         
-    // else if (k == 'E')
-    //   currentKey = 21;        
-    // else if (k == 'D')
-    //   currentKey = 20;     
-    // else if (k == 'P')
-    //   currentKey = 32;        
-    // else if (k == 'R')
-    //   currentKey = 34;
-
     if (k >= 'a' && k <= 'z') {
       currentKey = k;
     }

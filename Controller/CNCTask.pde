@@ -1,4 +1,5 @@
 public class CNCTask {
+
   protected int motorStepsCount = 0;
   protected boolean acknowledgementReceived = true;
   protected boolean isTerminating = false;
@@ -41,10 +42,22 @@ public class CNCTask {
     receiveFeedback();
     check();
 
-    if (errorsList.size() > 0 || !acknowledgementReceived) {
+    // Check if user want to force task to stop
+    if (errorsList.size() > 0) {
+      if (isTerminating) {
+        if (cncListener != null) {
+          cncListener.onForceStop();
+        }
+      }
       return;
     }
 
+    // Check if last instruction was finished
+    if (!acknowledgementReceived) {
+      return;
+    }
+
+    // Terminating waiting for last acknowledgement from Arduino
     if (isTerminating) {
       if (cncListener != null) {
         cncListener.onStop();
@@ -52,6 +65,7 @@ public class CNCTask {
       return;
     }
 
+    // Try executing instruction
     try {
       executeInstruction();
     }
@@ -69,8 +83,6 @@ public class CNCTask {
     if (port.available() <= 0) return;
 
     int signal = port.read();
-
-    System.out.println((char) signal);
 
     if (signal == Constants.SERIAL_ACKNOWLEDGMENT) {
       acknowledgementReceived = true;
@@ -144,20 +156,18 @@ public class CNCTask {
       if (isSolved) {
         System.out.println(message);
         errorsList.remove(code);
+
+        if (sendSignal && errorsList.size() == 0) {
+          port.write(Constants.SERIAL_CONTINUE_SIGNAL);
+        }
       } 
       else {
         System.err.println(message);
         errorsList.add(code);
-      }
 
-      if (!sendSignal) 
-        return;
-
-      if (errorsList.size() == 0 && isSolved) {
-        port.write(Constants.SERIAL_CONTINUE_SIGNAL);
-      } 
-      else if (errorsList.size() == 1 && !isSolved) {
-        port.write(Constants.SERIAL_STOP_SIGNAL);
+        if (sendSignal && errorsList.size() == 1) {
+          port.write(Constants.SERIAL_CONTINUE_SIGNAL);
+        }
       }
     }
   }

@@ -3,6 +3,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class CalibrationTask extends CNCTask {
+  
   int currentKey = -1;
   long lastKeyTimestamp = 0;
 
