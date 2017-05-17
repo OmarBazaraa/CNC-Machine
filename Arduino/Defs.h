@@ -10,7 +10,6 @@
 const char SERIAL_MOTOR_STEPS_COUNT = 'S';
 const char SERIAL_CONTINUE_SIGNAL = 'C';
 const char SERIAL_STOP_SIGNAL = 'E';
-const char SERIAL_BEEP = 'B';
 const char SERIAL_CHECK_INTERRUPTS = 'T';
 
 // ARDUINO -> CONTROLLER
@@ -50,7 +49,7 @@ const int STEPPER_MODE_PIN = 18;
 // Motor variables
 //
 Servo servoZ;
-long motorStepsCount = 0;
+long motorStepsCount = 12000;
 long motorRemainingStepsCount = 0;
 int motorDirection = -1;
 int motorStepPin = -1;
@@ -71,7 +70,7 @@ boolean isBuzzerBeeping = false;
 //
 // Interrupt variables
 //
-int phonePositionFlag = HIGH;
+int phonePositionFlag = LOW;
 int powerSupplyFlag = HIGH;
 int cncRangeUpFlag = LOW;
 int cncRangeDownFlag = LOW;
@@ -115,15 +114,20 @@ char interruptErrorFixChar[] = {
 };
 
 int interruptErrorSignal[] = {
-  LOW,
   HIGH,
+  LOW,
   HIGH,
   HIGH,
   HIGH,
   HIGH
 };
 
+long lastErrorCheckTimestamp = 0;
+long lastMotorCheckTimestamp = 0;
+
 //
 // Error variables
 //
 boolean errorExists = false;
+
+boolean rangeChecksState = true;

@@ -114,9 +114,10 @@ void keyPressed() {
   
   cncTask.setKeyStatus(key, true);
 
-  if (key == 'T' || key == 't') {
+  if (key == ESC) {
     System.out.println("Log :: Terminatting ...  ");
     cncTask.stop();
+    key = 0;
   }
 }
 
