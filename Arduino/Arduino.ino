@@ -34,15 +34,18 @@ void setup() {
   pinMode(DIR_PIN_Y, OUTPUT);
   pinMode(STEPPER_MODE_PIN, OUTPUT);
 
-  // Setup servo motor
-  servoZ.attach(SERVO_PIN);
-  // moveServo(0);
-
   // Setup stepper motor to full step mode
   digitalWrite(STEPPER_MODE_PIN, HIGH);
 
   // Read last motor steps count
   EEPROM.get(motorStepsCountAddress, motorStepsCount);
+
+  // Read servo last state
+  EEPROM.get(servoStateAddress, servoState);
+
+  // Setup servo motor
+  servoZ.attach(SERVO_PIN);
+  moveServo(servoState);
 }
 
 void loop() {
@@ -140,7 +143,7 @@ void continueExecution() {
 
 void checkInterrupts() {
   long currentMillis = millis();
-  if (currentMillis - lastErrorCheckTimestamp < 400) {
+  if (currentMillis - lastErrorCheckTimestamp < 300) {
     return;
   }
 
@@ -183,6 +186,7 @@ void readMotorStepsCount() {
 
   Serial.write(SERIAL_ACKNOWLEDGMENT);
 
+  isMotorStepping = false;
   continueExecution();
 }
 
@@ -198,7 +202,7 @@ void initStepper(int stepPin, int directionPin, boolean dir) {
 
 boolean isValidMotorStep() {
   long currentMillis = millis();
-  if (currentMillis - lastMotorCheckTimestamp < 400) {
+  if (currentMillis - lastMotorCheckTimestamp < 300) {
     return rangeChecksState;
   }
 
@@ -264,7 +268,8 @@ void moveStepper() {
 }
 
 void moveServo(boolean down) {
-  servoZ.write(down == 1 ? 90 : 120);
+  servoZ.write(down ? 90 : 120);
+  EEPROM.update(servoStateAddress, down);
   delay(200);
 }
 
@@ -301,8 +306,9 @@ void beep() {
 }
 
 void piano(int key) {
-  key = key % 48;
+  key = key % 41;
   tone(BUZZER_PIN, notes[key], 100);
+  delay(200);
 
   // Send acknowledgment
   Serial.write(SERIAL_ACKNOWLEDGMENT);
