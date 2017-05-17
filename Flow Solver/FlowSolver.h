@@ -74,7 +74,7 @@ private:
 	};
 
 private:
-	const int MAX_RECURSIVE_CALLS = 1e9;
+	const int MAX_RECURSIVE_CALLS = 250000000;
 	const int COLOR_INTENSITY_THRESHOLD = 15;
 	const int EMPTY_BLOCK_COLOR = 0;
 	const int MAX_BACKGROUND_RGB = 100;

@@ -133,20 +133,56 @@ void FlowSolver::detectNextLevelButton() {
 	for (int i = 0; i < image.cols; ++i) {
 		Vec3b intensity = image.at<Vec3b>(imageHalfRowsCount, i);
 
-		if (compareVectors(borderColor, intensity, COLOR_INTENSITY_THRESHOLD)) {
-			dialogLeftBorder = i;
-			break;
+		if (!compareVectors(borderColor, intensity, COLOR_INTENSITY_THRESHOLD)) {
+			continue;
 		}
+
+		int k = i;
+		while (1) {
+			Vec3b intensity1 = image.at<Vec3b>(imageHalfRowsCount - 5, ++k);
+			Vec3b intensity2 = image.at<Vec3b>(imageHalfRowsCount + 5, ++k);
+
+			if (!compareVectors(borderColor, intensity1, COLOR_INTENSITY_THRESHOLD) ||
+				!compareVectors(borderColor, intensity2, COLOR_INTENSITY_THRESHOLD))
+				break;
+		}
+		
+		// Check if white color not white border
+		if (k - i >= 15) {
+			i = k;
+			continue;
+		}
+
+		dialogLeftBorder = i;
+		break;
 	}
 
 	// Loop to get right dialog border
 	for (int i = image.cols - 1; i > 0; --i) {
 		Vec3b intensity = image.at<Vec3b>(imageHalfRowsCount, i);
 
-		if (compareVectors(borderColor, intensity, COLOR_INTENSITY_THRESHOLD)) {
-			dialogRightBorder = i;
-			break;
+		if (!compareVectors(borderColor, intensity, COLOR_INTENSITY_THRESHOLD)) {
+			continue;
 		}
+
+		int k = i;
+		while (1) {
+			Vec3b intensity1 = image.at<Vec3b>(imageHalfRowsCount - 5, --k);
+			Vec3b intensity2 = image.at<Vec3b>(imageHalfRowsCount + 5, --k);
+
+			if (!compareVectors(borderColor, intensity1, COLOR_INTENSITY_THRESHOLD) ||
+				!compareVectors(borderColor, intensity2, COLOR_INTENSITY_THRESHOLD))
+				break;
+		} 
+
+		// Check if white color not white border
+		if (i - k >= 15) {
+			i = k;
+			continue;
+		}
+
+		dialogRightBorder = i;
+		break;
 	}
 
 	if (dialogLeftBorder == -1 || dialogRightBorder == -1) {
@@ -168,6 +204,22 @@ void FlowSolver::detectNextLevelButton() {
 		}
 
 		if (!border) {
+			continue;
+		}
+
+		int k = i;
+		while (1) {
+			Vec3b intensity1 = image.at<Vec3b>(++k, imageHalfColsCount + 5);
+			Vec3b intensity2 = image.at<Vec3b>(++k, imageHalfColsCount - 5);
+
+			if (!compareVectors(borderColor, intensity1, COLOR_INTENSITY_THRESHOLD) ||
+				!compareVectors(borderColor, intensity2, COLOR_INTENSITY_THRESHOLD))
+				break;
+		}
+
+		// Check if white color not white border
+		if (k - i >= 15) {
+			i = k;
 			continue;
 		}
 
