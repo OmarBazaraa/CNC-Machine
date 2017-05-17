@@ -166,7 +166,7 @@ public class CNCTask {
         errorsList.add(code);
 
         if (sendSignal && errorsList.size() == 1) {
-          port.write(Constants.SERIAL_CONTINUE_SIGNAL);
+          port.write(Constants.SERIAL_STOP_SIGNAL);
         }
       }
     }

@@ -39,6 +39,7 @@ const int BUZZER_PIN = 5;
 //
 // Motors pins
 //
+const int SERVO_PIN = 9;
 const int STEP_PIN_Y = 14;
 const int DIR_PIN_Y = 15;
 const int STEP_PIN_X = 16;
@@ -49,6 +50,7 @@ const int STEPPER_MODE_PIN = 18;
 // Motor variables
 //
 Servo servoZ;
+boolean servoState = false;
 long motorStepsCount = 12000;
 long motorRemainingStepsCount = 0;
 int motorDirection = -1;
@@ -57,6 +59,7 @@ int motorDirectionPin = -1;
 boolean isMotorStepping = false;
 
 int motorStepsCountAddress = 5;
+int servoStateAddress = 10;
 
 //
 // Sound variables
