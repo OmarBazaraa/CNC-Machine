@@ -79,10 +79,16 @@ void executeCommand(int command) {
     continueExecution();
     return;
   }
+  // Check for interrupt errors
   else if (command == SERIAL_CHECK_INTERRUPTS) {
     sendInterruptsErrors();
     return;
   } 
+  // Set up moter step count
+  else if (command == SERIAL_MOTOR_STEPS_COUNT) {
+    readMotorStepsCount();
+    return;
+  }
 
   if (errorExists)
     return;
@@ -90,11 +96,7 @@ void executeCommand(int command) {
   //
   // Motor commands
   //
-
-  // Set up moter step count
-  if (command == SERIAL_MOTOR_STEPS_COUNT)
-    readMotorStepsCount();
-  else if (command == '^')    // Move X Backwards
+  if (command == '^')    // Move X Backwards
     initStepper(STEP_PIN_X, DIR_PIN_X, 1);
   else if (command == 'v')    // Move X Forward
     initStepper(STEP_PIN_X, DIR_PIN_X, 0);
@@ -181,11 +183,7 @@ void readMotorStepsCount() {
 
   Serial.write(SERIAL_ACKNOWLEDGMENT);
 
-  // Beep sound
-  initBuzzer(55, 2);
-
-  // Reset error
-  errorExists = false;
+  continueExecution();
 }
 
 void initStepper(int stepPin, int directionPin, boolean dir) {
