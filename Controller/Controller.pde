@@ -1,9 +1,6 @@
 import processing.serial.*;
 import java.util.Scanner; 
 
-// ===========================
-// Variables
-// ===========================
 int userOption = 0;
 
 int serialDevicesListSize = 0;
@@ -22,6 +19,13 @@ CNCListener cncListener = new CNCListener() {
     else {
       cncTask.start();
     }
+  }
+
+  public void onForceStop() {
+    System.out.println("Force terminating...");
+
+    cncTask = null;
+    displayUserOptionsMenu();
   }
 
   public void onError(String errorMessage) {
@@ -115,7 +119,7 @@ void keyPressed() {
   cncTask.setKeyStatus(key, true);
 
   if (key == ESC) {
-    System.out.println("Log :: Terminatting ...  ");
+    System.out.println("Log :: Terminating ...  ");
     cncTask.stop();
     key = 0;
   }

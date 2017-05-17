@@ -3,8 +3,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class MovePenTask extends CNCTask {
-  int rows, cols;
 
+  int rows, cols;
+  
   boolean isReleaseInstructionSent = false;
 
   public MovePenTask(int rows, int cols, int steps) {
