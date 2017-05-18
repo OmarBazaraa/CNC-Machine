@@ -361,7 +361,7 @@ void FlowSolver::printStatistics() {
 
 string FlowSolver::solutionInstructions() {
 	// Being instructions with girl cell dimensions
-	string result = to_string(singleBlockWidth) + " " + to_string(singleBlockHeight) + "\n";
+	string result = to_string(singleBlockWidth) + " " + to_string(singleBlockHeight) + " ";
 
 	// Init. currentRow, currentCol
 	int currentRow = initPenRow;

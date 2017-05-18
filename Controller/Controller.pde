@@ -15,8 +15,7 @@ CNCListener cncListener = new CNCListener() {
 
     if (cncTask == null) {
       displayUserOptionsMenu();
-    }
-    else {
+    } else {
       cncTask.start();
     }
   }
@@ -29,15 +28,14 @@ CNCListener cncListener = new CNCListener() {
   }
 
   public void onError(String errorMessage) {
-    if(errorMessage != null)
+    if (errorMessage != null)
       System.err.println(errorMessage);
 
     cncTask = cncTask.getMovePenBackTask();
 
     if (cncTask == null) {
       displayUserOptionsMenu();
-    }
-    else {
+    } else {
       cncTask.start();
     }
   }
@@ -68,26 +66,26 @@ void getUserOption() {
 
   // Perform user action
   switch (userSelectedOption) {
-    case Constants.USER_OPTIONS_FLOW_SOLVER:
+  case Constants.USER_OPTIONS_FLOW_SOLVER:
     cncTask = new FlowSolvingTask();
     break;
 
-    case Constants.USER_OPTIONS_PAPER_PAINT:
+  case Constants.USER_OPTIONS_PAPER_PAINT:
     cncTask = new PaintingTask();
     break;
 
-    case Constants.USER_OPTIONS_PHONE_PAINT:
+  case Constants.USER_OPTIONS_PHONE_PAINT:
     break;
 
-    case Constants.USER_OPTIONS_PIANO:
+  case Constants.USER_OPTIONS_PIANO:
     cncTask = new PianoTask();
     break;
 
-    case Constants.USER_OPTIONS_CALIBRATION:
+  case Constants.USER_OPTIONS_CALIBRATION:
     cncTask = new CalibrationTask();
     break;
 
-    case Constants.USER_OPTIONS_QUIT_SYSTEM:
+  case Constants.USER_OPTIONS_QUIT_SYSTEM:
     System.out.println("Bye!");
     exit();
   }
@@ -115,7 +113,7 @@ void keyPressed() {
     userOption = key - '0';
     return;
   } 
-  
+
   cncTask.setKeyStatus(key, true);
 
   if (key == ESC) {
@@ -137,23 +135,26 @@ void getArduinoPort() {
   // Get port number from user
   // Scanner scanner = new Scanner(System.in);
   portNumber = 5;
+  for (int i = 0; i < Serial.list().length; ++i) {
+    System.out.println(i + "." + Serial.list()[i]);
+  }
 
   // do {
   //   // Display all ports
   //   for (int i = 0; i < Serial.list().length; ++i) {
   //     System.out.println(i + "." + Serial.list()[i]);
   //   }
-  
+
   //   portNumber = scanner.nextInt();
 
   // } while (portNumber >= Serial.list().length || portNumber < 0);
 
   // scanner.close();  
-  
+
   arduinoPortName = Serial.list()[portNumber];
-  
+
   System.out.println("Arduino port: " + arduinoPortName  + " is selected!");
-  
+
   serialDevicesListSize = Serial.list().length;
 
   // Conenct to port
