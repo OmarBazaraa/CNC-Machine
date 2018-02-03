@@ -2,7 +2,7 @@
 A CNC machine powered by Arduino with the following features:
 
 * Solving Flow Game
-* Drawing Picture
+* Drawing images
 * Manual Calibration
 * Playing Piano
 * Sense 9 different issues that can damage the machine
