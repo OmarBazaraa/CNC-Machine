@@ -5,7 +5,7 @@ A CNC machine powered by Arduino with the following features:
 * Drawing images
 * Manual Calibration
 * Playing Piano
-* Sense 9 different issues that can damage the machine
+* Sense 9 different issues that can damage the machine or lead to wrong mechanical results
 * Fully expandable
 * Contain power backup circuit
 * Precise accuracy
