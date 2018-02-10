@@ -1,11 +1,11 @@
 # Antar CNC Machine
 A CNC machine powered by Arduino with the following features:
 
-* Solving Flow Game
+* Solving Flow game
 * Drawing images
-* Manual Calibration
-* Playing Piano
-* Sense 9 different issues that can damage the machine or lead to wrong mechanical results
+* Manual calibration
+* Playing piano
+* Sense 9 different issues that can damage the machine or lead to wrong results
 * Fully expandable
 * Contain power backup circuit
 * Precise accuracy
