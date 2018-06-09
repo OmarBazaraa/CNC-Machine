@@ -360,7 +360,7 @@ void FlowSolver::printStatistics() {
 }
 
 string FlowSolver::solutionInstructions() {
-	// Being instructions with girl cell dimensions
+	// Begin instructions with the dimensions of the grid's cell
 	string result = to_string(singleBlockWidth) + " " + to_string(singleBlockHeight) + " ";
 
 	// Init. currentRow, currentCol
