@@ -24,7 +24,7 @@ It allows the user to select one of the following tasks:
 * Solve flow game.
 * Paint photo on paper.
 * Play piano from the keyboard.
-* Callibrate the CNC manually.
+* Calibrate the CNC manually.
 
 The controller is designed in a fully expandable way.
 All the logic to communicate and configure the CNC is encapsulated in `CNCTask` class.
@@ -37,11 +37,11 @@ A C-program burnt on the Arduino that:
 * Has a simple logic for protecting the CNC against some faults that might occur.
 
 ## Flow Solver
-A C++ program that takes a screenshot for Flow game level, analyse it and perform one of the following tasks:
+A C++ program that takes a screenshot for Flow game level, analyses it and perform one of the following tasks:
 * Run an algorithm for solving the game level.
 * Detect the "Next Level" button.
 
-Finally it returns an instruction-string that the CNC can perform.
+Finally, it returns an instruction-string that the CNC can perform.
 
 ## Painter
 A C++ program that takes an image and convert it into an instruction-string that the CNC can perform.
